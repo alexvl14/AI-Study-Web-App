@@ -1,0 +1,70 @@
+# =========================
+# 1. ROOT & SECURITY
+# =========================
+# Never commit environment variables or secrets
+.env
+.env.*
+*.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE and Editor folders
+.vscode/
+.idea/
+.vs/
+*.suo
+*.user
+
+# =========================
+# 2. FRONTEND (Node.js / React / Vue)
+# =========================
+# Dependencies
+frontend/node_modules/
+frontend/.npm/
+
+# Production build outputs (these should be built via Docker, not committed)
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/out/
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-error.log*
+
+# =========================
+# 3. BACKEND: ASP.NET CORE (C#)
+# =========================
+# Build results
+backend-dotnet/bin/
+backend-dotnet/obj/
+
+# Local user secrets and development settings
+backend-dotnet/appsettings.Development.json
+backend-dotnet/appsettings.local.json
+
+# NuGet packages (usually handled globally, but good to be safe)
+backend-dotnet/packages/
+
+# =========================
+# 4. BACKEND: PYTHON (FastAPI & ML)
+# =========================
+# Byte-compiled / optimized / DLL files
+backend-python/__pycache__/
+backend-python/*.py[cod]
+backend-python/*$py.class
+
+# Virtual environments
+backend-python/venv/
+backend-python/env/
+backend-python/.venv/
+
+# Jupyter Notebook checkpoints
+backend-python/.ipynb_checkpoints/
+
+# Large Machine Learning Models (Optional but recommended)
+# If your .joblib or .onnx files become very large, you shouldn't push them to GitHub.
+# Uncomment the line below if your models get bigger than 50MB.
+# backend-python/models/*.joblib
