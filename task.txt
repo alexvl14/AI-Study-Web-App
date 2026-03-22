@@ -1,0 +1,1834 @@
+You are a highly skilled Senior Frontend Engineer specializing in creating polished, user-focused, single-page React applications using Tailwind CSS. We are building a modern web application for university students focused entirely on studying, inspired by NotebookLM but customized for intensive active recall. The design must be clean, minimal, and use a calming but professional color palette (e.g., shades of gray, white, and subtle, deep blue accents).
+
+Page 1: The Notebook Dashboard
+Design a dashboard page where users select or create a notebook.
+
+Header: A simple navbar with the app logo ("StudyLM") and a user profile avatar.
+
+Existing Notebooks: Create a section that displays a responsive grid of "notebook cards." Each card should show:
+
+A clean notebook icon.
+
+The notebook title (e.g., "History of Sofia, 19th Century").
+
+The number of uploaded documents within it.
+
+A "last modified" timestamp.
+
+The "Add New" Feature: The first card in the grid should be a special "Create New Notebook" card. It must be marked distinctly (e.g., a simple dashed border with a large "+" icon and centered text). When clicked, it should trigger a modern modal to input a new notebook name.
+
+Page 2: The Main Notebook Workspace
+When a notebook is selected, the view must switch to the main workspace. This page must use a sophisticated 3-column layout.
+
+Column 1: Materials & Sources (Left Panel - ~25% width)
+
+A sidebar layout with a clean header titled "Sources."
+
+Below the header, a prominent, modern "Upload Documents" button (PDF/TXT icon).
+
+The main area should list uploaded documents in a clean vertical list (similar to NotebookLM). Each item needs:
+
+A file type icon.
+
+The filename.
+
+A small checkmark or icon indicating if it has been indexed for AI.
+
+This column must have internal scrolling.
+
+Column 2: Gemini Interaction (Middle Panel - ~45% width)
+
+This is the main chat interface. It must have a central chat box area with proper scroll behavior (new messages appear at the bottom).
+
+Use standard chat bubbles: a lighter gray for user input and the accent blue for Gemini's response (or vice versa, the key is distinction).
+
+At the very bottom, there must be a modern, prominent text input area with a subtle send icon.
+
+Column 3: Dynamic Study Plan (Right Panel - ~30% width)
+
+A sidebar titled "AI Generated Study Plan."
+
+This panel must display a list of key topics that Gemini has generated based on the conversation and the uploaded docs.
+
+Topic Markers: The generated topics must be stylized distinctly. Use shades of gray for unvisited/inactive topics, and a subtle blue for the current/active topic to clearly indicate progress and focus. Make this look like a clear timeline or checklist.
+
+Component: Interactive Topic Modal (Core Logic)
+
+When a user clicks on any topic in the Study Plan list, it must open a professional, modern "Drawer Modal" that slides in from the right.
+
+The modal content must handle a large amount of text gracefully, ensuring perfect scrolling and fixed headers. The content of this modal is:
+
+Fixed Header: Topic Title.
+
+The Content Section: Displays all the extracted text for that specific topic in a highly readable font.
+
+The AI Reading Button: In the sticky header or footer of this modal, there must be a prominent button with a speaker/sound icon that says "Turn on AI Reading" (a toggle button).
+
+The Closing Action: At the very end of the text (requiring the user to scroll down), there must be a distinct "Quiz Me" section. This must show 2-3 short, multiple-choice questions about the text above, followed by a "Check My Answers" button.
+
+
+Here is the design made in the api app stich for you to follow:
+
+<!-- Dashboard -->
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StudyLM - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#1a57db",
+          "background-light": "#f3f4f6", // Updated to match spec
+          "background-dark": "#111621",
+          "surface": "#ffffff",
+          "surface-secondary": "#e5e7eb",
+          "text-main": "#111827",
+          "text-muted": "#9ca3af",
+          "accent": "#059669"
+        },
+        fontFamily: {
+          "display": ["Plus Jakarta Sans", "sans-serif"]
+        },
+        borderRadius: {
+          "DEFAULT": "0.5rem",
+          "lg": "12px", // Updated to 12px per spec
+          "xl": "1.5rem",
+          "full": "9999px"
+        },
+        boxShadow: {
+          "tactile": "0 2px 0 0 rgba(17, 24, 39, 0.05)"
+        }
+      },
+    },
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .card-active:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-slate-100 min-h-screen antialiased flex flex-col">
+<!-- Header -->
+<header class="h-16 px-4 flex items-center justify-between sticky top-0 bg-background-light dark:bg-background-dark z-10">
+<h1 class="text-[20px] font-bold tracking-tight text-text-main dark:text-slate-100">StudyLM</h1>
+<button class="w-8 h-8 rounded-full overflow-hidden border border-surface-secondary dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARsHXmeZpeTw76gQs8xB4OiiaHpHfP-4gbuc_FG0nJ2MIc7NdSc4HPAbToLdIB3TKUlw8hv8wCxTP4QzbyAt7Tx2G59g0u-2Lu83bU8sGRIj9ycpVzXUVNBO6QfFCUVH6Id-Kx5zLFPFhwJw3TJ2suceklH0WDeHMTG3T1obRbdL81mtQMzwq99WgyUp3VPq1ARfsTu16ZL2ZFQq1-4IT842gNDP2ark5F6w-6QnMjRT5a-Y5Aj59qwdX3_YLXBOnGXly74s6vShYO"/>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-4 pb-20 overflow-y-auto">
+<div class="grid grid-cols-2 gap-4">
+<!-- Create New Card -->
+<button class="flex flex-col items-center justify-center gap-2 h-[140px] rounded-lg border-2 border-dashed border-text-muted bg-background-light dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary card-active">
+<span class="material-symbols-outlined text-[24px] text-text-main dark:text-slate-100" data-icon="add" style="font-variation-settings: 'FILL' 0;">add</span>
+<span class="text-sm font-medium text-text-main dark:text-slate-100 px-2 text-center leading-tight">Create New Notebook</span>
+</button>
+<!-- Notebook Card 1 -->
+<a class="flex flex-col justify-between h-[140px] p-3 rounded-lg bg-surface dark:bg-gray-800 border border-surface-secondary dark:border-gray-700 shadow-tactile transition-transform card-active block" href="#">
+<div class="flex items-start justify-between">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[12px] font-medium bg-surface-secondary dark:bg-gray-700 text-text-main dark:text-slate-300">
+            4 docs
+          </span>
+<span class="material-symbols-outlined text-text-muted text-[16px]" data-icon="more_horiz">more_horiz</span>
+</div>
+<div>
+<h2 class="text-base font-bold text-text-main dark:text-slate-100 leading-tight mb-1 line-clamp-2">Machine Learning Basics</h2>
+<p class="text-[12px] text-text-muted font-medium">Edited 2h ago</p>
+</div>
+</a>
+<!-- Notebook Card 2 -->
+<a class="flex flex-col justify-between h-[140px] p-3 rounded-lg bg-surface dark:bg-gray-800 border border-surface-secondary dark:border-gray-700 shadow-tactile transition-transform card-active block" href="#">
+<div class="flex items-start justify-between">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[12px] font-medium bg-surface-secondary dark:bg-gray-700 text-text-main dark:text-slate-300">
+            12 docs
+          </span>
+<span class="material-symbols-outlined text-text-muted text-[16px]" data-icon="more_horiz">more_horiz</span>
+</div>
+<div>
+<h2 class="text-base font-bold text-text-main dark:text-slate-100 leading-tight mb-1 line-clamp-2">History 101: Midterm Prep</h2>
+<p class="text-[12px] text-text-muted font-medium">Edited 1d ago</p>
+</div>
+</a>
+<!-- Notebook Card 3 -->
+<a class="flex flex-col justify-between h-[140px] p-3 rounded-lg bg-surface dark:bg-gray-800 border border-surface-secondary dark:border-gray-700 shadow-tactile transition-transform card-active block" href="#">
+<div class="flex items-start justify-between">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[12px] font-medium bg-surface-secondary dark:bg-gray-700 text-text-main dark:text-slate-300">
+            1 doc
+          </span>
+<span class="material-symbols-outlined text-text-muted text-[16px]" data-icon="more_horiz">more_horiz</span>
+</div>
+<div>
+<h2 class="text-base font-bold text-text-main dark:text-slate-100 leading-tight mb-1 line-clamp-2">Biology Lab Notes</h2>
+<p class="text-[12px] text-text-muted font-medium">Edited 3d ago</p>
+</div>
+</a>
+<!-- Notebook Card 4 -->
+<a class="flex flex-col justify-between h-[140px] p-3 rounded-lg bg-surface dark:bg-gray-800 border border-surface-secondary dark:border-gray-700 shadow-tactile transition-transform card-active block" href="#">
+<div class="flex items-start justify-between">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[12px] font-medium bg-surface-secondary dark:bg-gray-700 text-text-main dark:text-slate-300">
+            8 docs
+          </span>
+<span class="material-symbols-outlined text-text-muted text-[16px]" data-icon="more_horiz">more_horiz</span>
+</div>
+<div>
+<h2 class="text-base font-bold text-text-main dark:text-slate-100 leading-tight mb-1 line-clamp-2">Philosophy readings</h2>
+<p class="text-[12px] text-text-muted font-medium">Edited 1w ago</p>
+</div>
+</a>
+</div>
+</main>
+<!-- Bottom Navigation - Shared Component -->
+<div class="fixed bottom-0 w-full flex gap-2 border-t border-surface-secondary dark:border-gray-800 bg-background-light dark:bg-background-dark px-4 pb-6 pt-3 z-20">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-primary" href="#">
+<div class="flex h-8 items-center justify-center text-primary" data-icon="house" data-size="24px" data-weight="fill">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">house</span>
+</div>
+<p class="text-[12px] font-medium leading-normal tracking-[0.015em] text-primary">Dashboard</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-main dark:hover:text-slate-300 transition-colors" href="#">
+<div class="flex h-8 items-center justify-center" data-icon="folder" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined text-[24px]">folder</span>
+</div>
+<p class="text-[12px] font-medium leading-normal tracking-[0.015em]">Workspace</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-main dark:hover:text-slate-300 transition-colors" href="#">
+<div class="flex h-8 items-center justify-center" data-icon="user" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<p class="text-[12px] font-medium leading-normal tracking-[0.015em]">Profile</p>
+</a>
+</div>
+</body></html>
+
+<!-- Workspace - Sources -->
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Workspace - Sources</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a57db",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                        "surface": "#ffffff",
+                        "text-main": "#111827",
+                        "text-muted": "#9ca3af",
+                        "accent-success": "#059669",
+                        "border-color": "#e5e7eb"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'tactile': '0 2px 0 0 rgba(17, 24, 39, 0.05)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: theme('colors.background-light');
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main h-screen flex flex-col overflow-hidden font-display selection:bg-primary/20">
+<!-- Header -->
+<header class="flex items-center justify-between px-4 py-4 bg-surface dark:bg-background-dark border-b border-border-color dark:border-gray-800 z-10 shrink-0">
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-background-light dark:bg-gray-800 text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-xl">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight text-text-main dark:text-white">Neural Networks</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</header>
+<!-- Main Content Area (Swipeable) -->
+<main class="flex-1 overflow-y-auto no-scrollbar relative pb-24">
+<!-- Sources Container -->
+<div class="p-4 space-y-4 max-w-md mx-auto">
+<!-- Section Title -->
+<div class="flex items-center justify-between mb-2">
+<h2 class="text-lg font-bold text-text-main dark:text-white">Sources</h2>
+<span class="text-sm font-medium text-text-muted">4 Files</span>
+</div>
+<!-- Add Source Button -->
+<button class="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-surface dark:bg-gray-800 rounded-lg border border-border-color dark:border-gray-700 shadow-tactile text-primary font-bold active:bg-background-light dark:active:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-xl">add</span>
+                Add Source
+            </button>
+<!-- Source List -->
+<div class="space-y-3 mt-4">
+<!-- Source Item 1 (Indexed) -->
+<div class="flex items-center gap-4 p-4 bg-surface dark:bg-gray-800 rounded-lg border border-border-color dark:border-gray-700 shadow-tactile">
+<div class="w-10 h-10 shrink-0 flex items-center justify-center rounded bg-red-50 dark:bg-red-900/20 text-red-500">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-text-main dark:text-white truncate text-base">Introduction_to_Deep_Learning.pdf</h3>
+<p class="text-sm text-text-muted truncate">Added Oct 12 • 2.4 MB</p>
+</div>
+<div class="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-accent-success/10 text-accent-success">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+</div>
+<!-- Source Item 2 (Indexed) -->
+<div class="flex items-center gap-4 p-4 bg-surface dark:bg-gray-800 rounded-lg border border-border-color dark:border-gray-700 shadow-tactile">
+<div class="w-10 h-10 shrink-0 flex items-center justify-center rounded bg-blue-50 dark:bg-blue-900/20 text-blue-500">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-text-main dark:text-white truncate text-base">Lecture_Notes_Week_4_Backprop.docx</h3>
+<p class="text-sm text-text-muted truncate">Added Oct 14 • 1.1 MB</p>
+</div>
+<div class="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-accent-success/10 text-accent-success">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+</div>
+<!-- Source Item 3 (Indexing / Loading) -->
+<div class="flex items-center gap-4 p-4 bg-surface dark:bg-gray-800 rounded-lg border border-primary/30 dark:border-primary/50 shadow-tactile relative overflow-hidden">
+<!-- Progress Bar Background (Simulated) -->
+<div class="absolute bottom-0 left-0 h-1 bg-primary w-2/3"></div>
+<div class="w-10 h-10 shrink-0 flex items-center justify-center rounded bg-gray-100 dark:bg-gray-700 text-text-muted">
+<span class="material-symbols-outlined">article</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-text-main dark:text-white truncate text-base">Research_Paper_Transformers.txt</h3>
+<p class="text-sm text-primary font-medium truncate">Indexing... 65%</p>
+</div>
+<div class="shrink-0 text-primary">
+<span class="material-symbols-outlined animate-spin">sync</span>
+</div>
+</div>
+<!-- Source Item 4 (Error State) -->
+<div class="flex items-center gap-4 p-4 bg-surface dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-900/50 shadow-tactile">
+<div class="w-10 h-10 shrink-0 flex items-center justify-center rounded bg-red-50 dark:bg-red-900/20 text-red-500">
+<span class="material-symbols-outlined">error</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-text-main dark:text-white truncate text-base">Corrupted_Data_Set.csv</h3>
+<p class="text-sm text-red-500 font-medium truncate">Failed to process</p>
+</div>
+<button class="shrink-0 w-8 h-8 flex items-center justify-center rounded text-text-muted hover:bg-background-light dark:hover:bg-gray-700">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+<!-- Contextual Help -->
+<div class="mt-8 p-4 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/10 flex gap-3">
+<span class="material-symbols-outlined text-primary shrink-0">lightbulb</span>
+<p class="text-sm text-text-main dark:text-gray-300 leading-relaxed">
+                     StudyLM uses these sources to generate accurate study guides and answer your questions. Add PDFs, Word docs, or plain text.
+                 </p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shared Component Applied) -->
+<div class="fixed bottom-0 w-full z-50">
+<div class="relative flex h-auto w-full flex-col bg-[#f8f9fc] dark:bg-gray-900 group/design-root overflow-x-hidden border-t border-[#e7ebf3] dark:border-gray-800" style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'>
+<div class="flex gap-2 px-4 pb-6 pt-3">
+<!-- Active Tab: Sources -->
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-primary" href="#">
+<div class="flex h-8 items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 28px;">folder</span>
+</div>
+<p class="text-xs font-bold leading-normal tracking-[0.015em] text-primary">Sources</p>
+</a>
+<!-- Inactive Tab: Chat -->
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#4e6597] dark:text-gray-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 28px;">chat</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Chat</p>
+</a>
+<!-- Inactive Tab: Study Plan -->
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#4e6597] dark:text-gray-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 28px;">file_open</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Study Plan</p>
+</a>
+</div>
+</div>
+</div>
+</body></html>
+
+<!-- Workspace - Chat -->
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StudyLM - Workspace Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#1a57db",
+          "background-light": "#F3F4F6",
+          "background-dark": "#111621",
+          "surface": "#FFFFFF",
+          "surface-secondary": "#E5E7EB",
+          "text-main": "#111827",
+          "text-muted": "#9CA3AF"
+        },
+        fontFamily: {
+          "display": ["Plus Jakarta Sans", "sans-serif"]
+        },
+        borderRadius: {
+          "DEFAULT": "0.5rem",
+          "lg": "0.75rem", // 12px based on PRD
+          "xl": "1.5rem",
+          "full": "9999px"
+        },
+        boxShadow: {
+          "tactile": "0 2px 0 0 rgba(17, 24, 39, 0.05)"
+        }
+      },
+    },
+  }
+</script>
+<style>
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .border-tactile {
+    border: 1px solid #E5E7EB;
+  }
+  .dark .border-tactile {
+    border-color: #374151;
+  }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-gray-100 min-h-screen flex flex-col font-display selection:bg-primary/30 antialiased overflow-hidden">
+<!-- Header -->
+<header class="flex-none flex items-center justify-between px-4 py-3 bg-surface dark:bg-gray-800 border-b border-tactile z-10 shadow-sm sticky top-0">
+<div class="flex items-center gap-3">
+<button aria-label="Go back" class="text-text-main dark:text-gray-200 p-2 -ml-2 rounded-full hover:bg-surface-secondary dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold truncate">Intro to Neural Networks</h1>
+</div>
+<button aria-label="Notebook options" class="text-text-muted hover:text-text-main dark:hover:text-gray-200 p-2 -mr-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</header>
+<!-- Chat Area (Scrollable) -->
+<main class="flex-1 overflow-y-auto p-4 flex flex-col gap-6 pb-24 scroll-smooth">
+<!-- AI Welcome Message -->
+<div class="flex items-end gap-3 max-w-[85%] self-start">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="bg-surface dark:bg-gray-800 p-3 rounded-2xl rounded-bl-sm border-tactile shadow-tactile text-[15px] leading-relaxed">
+<p>Hi! I'm ready to help you study. What would you like to review first from your notes on <strong>Neural Networks</strong>?</p>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex items-end gap-3 max-w-[85%] self-end flex-row-reverse">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-tactile">
+<img alt="User profile photo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT1oIUqpU7-wGmRKG93KzDIDKSVcBhbbqPVFy3AgwTf-LWPcYU4thEClbXyxUsmG2RhQuQNprwdpkw2V6-QTVqdQ_VmC5cfkIew2cZ6VJIghU7PDsc4DgAPLOd1vyQQQcHQVR6Yk80GrPeRsd_DQAMN3hdxHzL6z3phGx97rOuF4pxywfpqflLUUrrg8XtiNSaHx1XsDpFcq6hM2-0pyIyjyw1huh-TV37cZuMBwALmINiFtrde872azYQz-2fzQUzgDLP9xhCBuvb"/>
+</div>
+<div class="bg-surface-secondary dark:bg-gray-700 p-3 rounded-2xl rounded-br-sm text-[15px] leading-relaxed text-text-main dark:text-gray-100">
+<p>Can you explain what an activation function is? Keep it simple.</p>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex items-end gap-3 max-w-[85%] self-start">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="bg-surface dark:bg-gray-800 p-4 rounded-2xl rounded-bl-sm border-tactile shadow-tactile text-[15px] leading-relaxed flex flex-col gap-2">
+<p>Sure! Think of an <strong>activation function</strong> as a gatekeeper for a neuron.</p>
+<p>It decides whether the information coming into the neuron is important enough to pass on to the next layer. Without it, a neural network would just be a fancy linear regression model, unable to learn complex patterns.</p>
+<div class="mt-2 text-sm text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="description">description</span>
+<span>Source: Lecture_2_Transcript.pdf</span>
+</div>
+</div>
+</div>
+<!-- User Message 2 -->
+<div class="flex items-end gap-3 max-w-[85%] self-end flex-row-reverse mt-2">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-tactile opacity-0"></div> <!-- Spacer -->
+<div class="bg-surface-secondary dark:bg-gray-700 p-3 rounded-2xl rounded-br-sm text-[15px] leading-relaxed text-text-main dark:text-gray-100">
+<p>Give me an example of a common one.</p>
+</div>
+</div>
+<!-- AI Typing Indicator -->
+<div class="flex items-end gap-3 max-w-[85%] self-start">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="bg-surface dark:bg-gray-800 p-4 rounded-2xl rounded-bl-sm border-tactile shadow-tactile flex items-center gap-1.5 h-[52px]">
+<div class="w-1.5 h-1.5 bg-text-muted rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+<div class="w-1.5 h-1.5 bg-text-muted rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+<div class="w-1.5 h-1.5 bg-text-muted rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+</div>
+</div>
+</main>
+<!-- Input Area & Bottom Nav Wrapper -->
+<div class="fixed bottom-0 left-0 w-full bg-background-light dark:bg-background-dark z-20">
+<!-- Input Container -->
+<div class="px-4 py-3 bg-background-light dark:bg-background-dark relative before:content-[''] before:absolute before:top-[-20px] before:left-0 before:w-full before:h-[20px] before:bg-gradient-to-t before:from-background-light dark:before:from-background-dark before:to-transparent before:pointer-events-none">
+<div class="flex items-end gap-2 bg-surface dark:bg-gray-800 rounded-2xl border-tactile shadow-tactile p-1.5 pr-2 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+<button aria-label="Attach file" class="p-2 text-text-muted hover:text-primary transition-colors shrink-0 rounded-full">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<textarea class="flex-1 bg-transparent border-0 focus:ring-0 resize-none py-2.5 px-1 text-[15px] max-h-[120px] placeholder:text-text-muted dark:text-gray-100" placeholder="Ask anything about your notes..." rows="1" style="min-height: 44px;"></textarea>
+<button aria-label="Send message" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 hover:bg-primary/90 transition-colors shadow-sm self-end mb-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+<span class="material-symbols-outlined text-[20px]" data-icon="arrow_upward">arrow_upward</span>
+</button>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<nav class="flex gap-2 border-t border-tactile bg-surface dark:bg-gray-800 px-4 pb-safe pt-2">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-main dark:hover:text-gray-200 pb-2" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" data-icon="folder" data-weight="regular">folder</span>
+</div>
+<p class="text-[11px] font-semibold tracking-wide uppercase">Sources</p>
+</a>
+<!-- Active State -->
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary pb-2 relative" href="#">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-b-full"></div>
+<div class="flex h-8 items-center justify-center mt-1">
+<span class="material-symbols-outlined text-[24px]" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+</div>
+<p class="text-[11px] font-bold tracking-wide uppercase">Chat</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-main dark:hover:text-gray-200 pb-2" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" data-icon="menu_book" data-weight="regular">menu_book</span>
+</div>
+<p class="text-[11px] font-semibold tracking-wide uppercase">Study Plan</p>
+</a>
+</nav>
+<div class="h-safe bg-surface dark:bg-gray-800"></div> <!-- Safe area for notched phones -->
+</div>
+</body></html>
+
+<!-- Workspace - Study Plan -->
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Workspace - Study Plan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a57db",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                        "surface": "#ffffff",
+                        "surface-secondary": "#e5e7eb",
+                        "text-primary": "#111827",
+                        "text-muted": "#9ca3af",
+                        "accent": "#059669"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    boxShadow: {
+                        'tactile': '0 2px 0 0 rgba(17, 24, 39, 0.05)',
+                    },
+                    borderRadius: { "DEFAULT": "0.75rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-primary min-h-screen flex flex-col font-display selection:bg-primary/20">
+<!-- Header -->
+<header class="flex items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark sticky top-0 z-10">
+<h1 class="text-xl font-bold tracking-tight text-text-primary dark:text-white">Study Plan</h1>
+<button aria-label="User Profile" class="flex items-center justify-center w-10 h-10 rounded-full bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-tactile text-text-primary dark:text-gray-300 active:bg-gray-50 transition-colors">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto px-4 pb-24">
+<!-- Progress Section -->
+<section class="mb-8">
+<div class="flex justify-between items-end mb-3">
+<h2 class="text-sm font-semibold text-text-primary dark:text-gray-300 uppercase tracking-wider">Course Progress</h2>
+<span class="text-sm font-bold text-primary">25%</span>
+</div>
+<div class="h-3 w-full bg-surface-secondary dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
+<div class="h-full bg-primary rounded-full transition-all duration-500 ease-out" style="width: 25%;"></div>
+</div>
+<p class="text-xs text-text-muted mt-2">1 of 4 topics completed</p>
+</section>
+<!-- Topics List -->
+<section class="flex flex-col gap-4">
+<!-- Completed Topic -->
+<article class="bg-surface dark:bg-gray-800 p-5 rounded border border-gray-200 dark:border-gray-700 shadow-tactile relative overflow-hidden">
+<div class="flex items-start gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-sm icon-fill" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-text-primary dark:text-white text-lg leading-tight mb-1">1. Foundations of AI</h3>
+<p class="text-sm text-text-muted mb-3 line-clamp-2">Understanding the basic concepts, history, and applications of Artificial Intelligence.</p>
+<button class="text-xs font-semibold text-primary border border-primary/30 bg-primary/5 px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors">Review</button>
+</div>
+</div>
+</article>
+<!-- Active Topic -->
+<article class="bg-surface dark:bg-gray-800 p-5 rounded border border-primary/50 shadow-tactile relative overflow-hidden ring-1 ring-primary/20">
+<!-- Highlight accent -->
+<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+<div class="flex items-start gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-sm" data-icon="play_arrow">play_arrow</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-bold text-primary uppercase tracking-wider bg-primary/10 px-2 py-0.5 rounded-sm">Current</span>
+</div>
+<h3 class="font-bold text-primary text-xl leading-tight mb-2">2. Neural Networks</h3>
+<p class="text-sm text-text-primary dark:text-gray-300 mb-4 line-clamp-2">Deep dive into perceptrons, activation functions, and the architecture of multi-layer networks.</p>
+<div class="flex items-center gap-3">
+<button class="flex-1 bg-primary text-white font-bold py-2.5 px-4 rounded shadow-[0_2px_0_0_rgba(17,24,39,0.1)] active:translate-y-[1px] active:shadow-none transition-all text-sm flex items-center justify-center gap-2">
+                                Resume Topic
+                                <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- Locked Topic 1 -->
+<article class="bg-surface/60 dark:bg-gray-800/60 p-5 rounded border border-gray-200 dark:border-gray-700 opacity-75">
+<div class="flex items-start gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-surface-secondary dark:bg-gray-700 text-text-muted flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-sm" data-icon="lock">lock</span>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-text-muted text-lg leading-tight mb-1">3. Backpropagation</h3>
+<p class="text-sm text-text-muted line-clamp-1">Learning algorithms and error minimization.</p>
+</div>
+</div>
+</article>
+<!-- Locked Topic 2 -->
+<article class="bg-surface/60 dark:bg-gray-800/60 p-5 rounded border border-gray-200 dark:border-gray-700 opacity-75">
+<div class="flex items-start gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-surface-secondary dark:bg-gray-700 text-text-muted flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-sm" data-icon="lock">lock</span>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-text-muted text-lg leading-tight mb-1">4. Convolutional Networks</h3>
+<p class="text-sm text-text-muted line-clamp-1">Image processing and spatial hierarchies.</p>
+</div>
+</div>
+</article>
+</section>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-surface dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pb-safe z-50">
+<div class="flex gap-2 px-4 pb-3 pt-2 max-w-md mx-auto">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-primary dark:hover:text-gray-300 transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" data-icon="folder">folder</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-wide">Sources</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-primary dark:hover:text-gray-300 transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" data-icon="chat">chat</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-wide">Chat</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center relative">
+<div class="absolute -top-1 w-12 h-1 bg-primary rounded-b-full"></div>
+<span class="material-symbols-outlined text-[24px] icon-fill" data-icon="school">school</span>
+</div>
+<p class="text-xs font-bold leading-normal tracking-wide">Study Plan</p>
+</a>
+</div>
+</nav>
+<!-- SafeArea Padding for iOS -->
+<style>
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 12px);
+        }
+    </style>
+</body></html>
+
+<!-- Topic Modal -->
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StudyLM - Topic Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#1a57db",
+          "background-light": "#f6f6f8",
+          "background-dark": "#111621",
+        },
+        fontFamily: {
+          "display": ["Plus Jakarta Sans", "sans-serif"]
+        },
+        borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+        boxShadow: {
+          'tactile': '0 2px 0 0 rgba(17, 24, 39, 0.05)',
+        }
+      },
+    },
+  }
+</script>
+<style>
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 h-screen w-full overflow-hidden flex flex-col relative font-display">
+<!-- Main Background (Dashboard/Workspace peek) -->
+<div class="flex-1 p-4 grid gap-4 grid-cols-2 opacity-50 pointer-events-none filter blur-sm">
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-tactile h-32"></div>
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-tactile h-32"></div>
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-tactile h-32"></div>
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-tactile h-32"></div>
+</div>
+<!-- Bottom Sheet Overlay -->
+<div class="absolute inset-0 z-10 flex flex-col justify-end items-stretch bg-slate-900/40 backdrop-blur-sm">
+<!-- Bottom Sheet Container (90% height) -->
+<div class="flex flex-col items-stretch bg-white dark:bg-slate-900 rounded-t-3xl h-[795px] shadow-2xl relative overflow-hidden">
+<!-- Handle -->
+<button aria-label="Drag to dismiss" class="flex h-6 w-full items-center justify-center shrink-0 pt-2 pb-1">
+<div class="h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+</button>
+<!-- Header -->
+<div class="flex items-center px-5 py-3 justify-between shrink-0 border-b border-slate-100 dark:border-slate-800">
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight flex-1 truncate">Neural Networks</h2>
+<button aria-label="Close modal" class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined" data-icon="close" data-size="24px">close</span>
+</button>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
+<!-- Action Bar -->
+<div class="px-5 py-4">
+<button class="inline-flex cursor-pointer items-center justify-center rounded-full h-10 px-5 bg-primary text-white gap-2 text-sm font-bold shadow-tactile transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="volume_up">volume_up</span>
+<span>AI Reading Active</span>
+</button>
+</div>
+<!-- Markdown Content -->
+<div class="px-5 pb-6 text-slate-800 dark:text-slate-200 text-base font-medium leading-[1.6]">
+<p class="mb-4">
+<span class="bg-blue-100 dark:bg-blue-900/40 text-slate-900 dark:text-blue-100 rounded px-1 -mx-1 transition-colors duration-300">Neural networks are computing systems inspired by the biological neural networks that constitute animal brains.</span> 
+            An artificial neural network is based on a collection of connected units or nodes called artificial neurons, which loosely model the neurons in a biological brain.
+          </p>
+<p class="mb-4">
+            Each connection, like the synapses in a biological brain, can transmit a signal to other neurons. An artificial neuron receives signals then processes them and can signal neurons connected to it.
+          </p>
+<p>
+            The "signal" at a connection is a real number, and the output of each neuron is computed by some non-linear function of the sum of its inputs. The connections are called edges.
+          </p>
+</div>
+<!-- Quiz Section -->
+<div class="mt-auto bg-background-light dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 p-5 flex flex-col gap-4 shrink-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary" data-icon="psychology">psychology</span>
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">Active Recall Quiz</h3>
+</div>
+<p class="text-slate-800 dark:text-slate-200 font-semibold mb-2">What does an artificial neuron in a neural network loosely model?</p>
+<!-- Quiz Options (Submitted State) -->
+<div class="flex flex-col gap-3">
+<!-- Option 1: Incorrect -->
+<label class="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/10 border border-red-500 dark:border-red-500 rounded-xl cursor-pointer relative overflow-hidden transition-colors">
+<input checked="" class="mt-0.5 h-5 w-5 text-red-600 border-red-500 focus:ring-red-500" name="quiz1" type="radio"/>
+<div class="flex-1 flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-medium">Computer processors</span>
+</div>
+<span class="material-symbols-outlined text-red-500" data-icon="cancel">cancel</span>
+</label>
+<!-- Option 2: Correct -->
+<label class="flex items-start gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-600 dark:border-emerald-500 rounded-xl cursor-pointer relative overflow-hidden transition-colors">
+<input class="mt-0.5 h-5 w-5 text-emerald-600 border-emerald-500 focus:ring-emerald-500" disabled="" name="quiz1" type="radio"/>
+<div class="flex-1 flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-medium">Synapses and neurons in a biological brain</span>
+</div>
+<span class="material-symbols-outlined text-emerald-600" data-icon="check_circle">check_circle</span>
+</label>
+<!-- Option 3: Default -->
+<label class="flex items-start gap-3 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer shadow-tactile opacity-60">
+<input class="mt-0.5 h-5 w-5 text-primary border-slate-300 focus:ring-primary" disabled="" name="quiz1" type="radio"/>
+<div class="flex-1 flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-medium">Digital memory storage</span>
+</div>
+</label>
+</div>
+<!-- Explanation -->
+<div class="mt-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-tactile">
+<p class="text-sm text-slate-700 dark:text-slate-300">
+<strong class="text-slate-900 dark:text-white">Explanation:</strong> The text states that artificial neural networks are based on a collection of connected units called artificial neurons, which loosely model the neurons in a biological brain.
+            </p>
+</div>
+<!-- Action Button -->
+<button class="mt-2 flex w-full items-center justify-center rounded-xl h-12 bg-primary text-white text-base font-bold shadow-tactile transition-transform active:scale-95">
+            Continue Reading
+          </button>
+</div>
+</div>
+</div>
+</div>
+</body></html>
+
+<!-- Workspace (Desktop) -->
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StudyLM | Main Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e0e3e5",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#00174b",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-container-low": "#f2f4f6",
+                        "on-secondary-fixed-variant": "#31447b",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "outline-variant": "#c3c6d7",
+                        "on-background": "#191c1e",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-dim": "#d8dadc",
+                        "background": "#f7f9fb",
+                        "outline": "#737686",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary-container": "#394c84",
+                        "on-surface-variant": "#434655",
+                        "secondary": "#495c95",
+                        "on-primary-fixed": "#00174b",
+                        "surface": "#f7f9fb",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-primary-container": "#eeefff",
+                        "inverse-primary": "#b4c5ff",
+                        "inverse-surface": "#2d3133",
+                        "tertiary": "#943700",
+                        "surface-tint": "#0053db",
+                        "tertiary-container": "#bc4800",
+                        "primary": "#004ac6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#2563eb",
+                        "secondary-container": "#acbfff",
+                        "on-tertiary-container": "#ffede6",
+                        "on-surface": "#191c1e"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar - Anchored Component -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm flex justify-between items-center px-6 h-16">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-700 dark:text-blue-400">StudyLM</span>
+<nav class="hidden md:flex gap-6 font-manrope tracking-tight text-sm font-medium">
+<a class="text-blue-700 dark:text-blue-400 border-b-2 border-blue-700 dark:border-blue-400 pb-1" href="#">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Library</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Research</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/20" placeholder="Search knowledge..." type="text"/>
+</div>
+<button class="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="settings">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-fixed overflow-hidden border border-outline-variant/30">
+<img alt="User profile" data-alt="Portrait of a young professional user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUF3ZYD1JW8Z_W-mcboZBTCnTBP30_O6EtNynqrLJZybn84g1lnR1e4kLX_fAvOF0PcN6K_93RcLd0VTcrLdp8L1B4J18G_kcKiPKvYKO9y4iFolB8BDDY3zdbKUHbkdMTOweh75H2amuW7JMxgQCjrW3crBYj2OU8p6LAQKpb-884IfxRLsZqMEVUN9nvK5xs3QHkBaHqnwi_drAzWE-V9GWdGc3UhP_1Dch0ry1Zd8Q0oluNUtjwJjrznmeh1QObSFpZrmmql-LV"/>
+</div>
+</div>
+</header>
+<main class="flex h-screen pt-16 overflow-hidden">
+<!-- Column 1: Sources Sidebar (Left, 25%) -->
+<aside class="w-[25%] bg-surface-container-low flex flex-col h-full py-8 overflow-y-auto hide-scrollbar">
+<div class="px-6 mb-8">
+<div class="flex items-center justify-between mb-2">
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold text-blue-700 dark:text-blue-400">Sources</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="info">info</span>
+</div>
+<h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-6">Knowledge Base</h2>
+<!-- CTA Upload -->
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary rounded-xl py-3 px-4 font-semibold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-xl" data-icon="upload">upload</span>
+                    Add New Source
+                </button>
+</div>
+<nav class="flex flex-col gap-1 mb-8">
+<div class="px-6 mb-2">
+<p class="font-manrope uppercase tracking-widest text-[10px] font-bold text-on-surface-variant opacity-60">Active Documents</p>
+</div>
+<!-- File List -->
+<div class="flex flex-col">
+<div class="flex items-center gap-3 bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 rounded-r-full py-3 px-6 border-l-4 border-blue-700 dark:border-blue-400 shadow-sm">
+<span class="material-symbols-outlined" data-icon="book_5">book_5</span>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-semibold truncate">Macroeconomics_Ch4.pdf</p>
+<p class="text-[10px] opacity-70">Indexed 2m ago</p>
+</div>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium truncate">Global_Trade_Trends.csv</p>
+<p class="text-[10px] opacity-70">Indexed 1h ago</p>
+</div>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="folder_special">folder_special</span>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium truncate">Research_Notes_Final.docx</p>
+<p class="text-[10px] opacity-70">Indexed 3h ago</p>
+</div>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</nav>
+<div class="mt-auto px-6 pt-8 border-t border-outline-variant/10">
+<div class="flex items-center justify-around text-slate-500">
+<button class="flex flex-col items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Help</span>
+</button>
+<button class="flex flex-col items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Feedback</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Column 2: Chat Interface (Center, 45%) -->
+<section class="w-[45%] bg-surface-container-lowest flex flex-col relative">
+<!-- Chat Scroll Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 hide-scrollbar pb-32">
+<!-- AI Message -->
+<div class="flex gap-4 max-w-[90%]">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container text-lg" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="space-y-2">
+<div class="bg-surface-container-low p-5 rounded-2xl rounded-tl-none text-on-surface leading-relaxed text-[15px]">
+                            Hello! I've analyzed your uploaded sources on <span class="text-primary font-semibold">Macroeconomics</span>. I'm ready to help you synthesize these concepts for your upcoming exam. What would you like to focus on first?
+                        </div>
+<p class="text-[10px] text-on-surface-variant px-1">AI Assistant • Just now</p>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 max-w-[90%] ml-auto flex-row-reverse">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="person">person</span>
+</div>
+<div class="space-y-2 text-right">
+<div class="bg-primary text-on-primary p-5 rounded-2xl rounded-tr-none leading-relaxed text-[15px] shadow-md shadow-primary/10">
+                            Can you explain the relationship between inflation and unemployment as discussed in Chapter 4?
+                        </div>
+<p class="text-[10px] text-on-surface-variant px-1">You • 1m ago</p>
+</div>
+</div>
+<!-- AI Message Response -->
+<div class="flex gap-4 max-w-[90%]">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container text-lg" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="space-y-2">
+<div class="bg-surface-container-low p-5 rounded-2xl rounded-tl-none text-on-surface leading-relaxed text-[15px]">
+                            Based on page 112 of <span class="italic">Macroeconomics_Ch4.pdf</span>, this is known as the **Phillips Curve**. It suggests an inverse relationship: when unemployment is low, inflation tends to be high, and vice-versa. 
+                            <br/><br/>
+                            Would you like me to generate a visualization of this curve based on the data in your CSV file?
+                        </div>
+<div class="flex gap-2 mt-2">
+<span class="px-3 py-1 bg-secondary-container/30 text-primary text-[11px] font-bold rounded-full border border-primary/10">Source: PDF Page 112</span>
+<span class="px-3 py-1 bg-secondary-container/30 text-primary text-[11px] font-bold rounded-full border border-primary/10">Source: CSV Data</span>
+</div>
+<p class="text-[10px] text-on-surface-variant px-1">AI Assistant • Just now</p>
+</div>
+</div>
+</div>
+<!-- Floating Chat Input -->
+<div class="absolute bottom-6 left-0 right-0 px-8">
+<div class="max-w-3xl mx-auto bg-white border border-outline-variant/20 shadow-xl shadow-on-surface/5 rounded-2xl p-2 flex items-center gap-2 group focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+<button class="p-2 hover:bg-surface-container rounded-xl text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 resize-none max-h-32 hide-scrollbar" placeholder="Ask StudyLM anything about your sources..." rows="1"></textarea>
+<div class="flex items-center gap-1 pr-1">
+<button class="p-2 hover:bg-surface-container rounded-xl text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</button>
+<button class="bg-primary text-on-primary p-2 rounded-xl hover:bg-primary-container transition-all shadow-sm">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Column 3: AI Study Plan (Right, 30%) -->
+<aside class="w-[30%] bg-surface flex flex-col p-8 overflow-y-auto hide-scrollbar">
+<div class="mb-8">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary" data-icon="auto_stories">auto_stories</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold text-on-surface-variant opacity-60">Personalized Roadmap</span>
+</div>
+<h2 class="text-xl font-extrabold text-on-surface tracking-tight mb-2">AI Generated Study Plan</h2>
+<p class="text-xs text-on-surface-variant leading-relaxed">Based on your learning objectives and uploaded material for "Advanced Macroeconomics".</p>
+</div>
+<!-- Timeline -->
+<div class="relative pl-4 space-y-12">
+<!-- Vertical Line -->
+<div class="absolute left-[23px] top-2 bottom-2 w-0.5 bg-outline-variant/30"></div>
+<!-- Topic 1: Current -->
+<div class="relative flex gap-6 group">
+<div class="z-10 w-5 h-5 rounded-full bg-primary ring-4 ring-primary/20 flex items-center justify-center shrink-0 mt-1">
+<div class="w-2 h-2 rounded-full bg-white"></div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-primary/10 flex-1">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-primary uppercase tracking-tighter">Current Module</span>
+<span class="text-[10px] font-medium text-primary">Active Now</span>
+</div>
+<h3 class="font-bold text-sm text-on-surface mb-1">Phillips Curve Dynamics</h3>
+<p class="text-xs text-on-surface-variant mb-4">Correlation between labor markets and price stability.</p>
+<div class="w-full bg-surface-container-low h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="text-[9px] font-bold text-on-surface-variant">65% Complete</span>
+<span class="text-[9px] font-bold text-on-surface-variant">45 mins left</span>
+</div>
+</div>
+</div>
+<!-- Topic 2: Upcoming -->
+<div class="relative flex gap-6">
+<div class="z-10 w-5 h-5 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center justify-center shrink-0 mt-1">
+</div>
+<div class="p-5 rounded-2xl hover:bg-surface-container-low transition-colors flex-1 cursor-default">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter opacity-60">Next Module</span>
+</div>
+<h3 class="font-bold text-sm text-on-surface/60 mb-1">Monetary Policy Transmission</h3>
+<p class="text-xs text-on-surface-variant/60">How interest rates affect aggregate demand.</p>
+</div>
+</div>
+<!-- Topic 3: Upcoming -->
+<div class="relative flex gap-6">
+<div class="z-10 w-5 h-5 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center justify-center shrink-0 mt-1">
+</div>
+<div class="p-5 rounded-2xl hover:bg-surface-container-low transition-colors flex-1 cursor-default">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter opacity-60">Final Review</span>
+</div>
+<h3 class="font-bold text-sm text-on-surface/60 mb-1">Fiscal Multipliers</h3>
+<p class="text-xs text-on-surface-variant/60">Measuring the impact of government spending.</p>
+</div>
+</div>
+</div>
+<!-- Goal Summary Card -->
+<div class="mt-auto pt-8">
+<div class="bg-gradient-to-br from-primary to-primary-container p-6 rounded-3xl text-on-primary">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Weekly Progress</p>
+<h4 class="text-xl font-bold">Excellent Momentum</h4>
+</div>
+<span class="material-symbols-outlined text-3xl opacity-50" data-icon="trophy">trophy</span>
+</div>
+<p class="text-xs opacity-90 leading-relaxed mb-4">You've covered 12 topics this week. You're on track to complete the syllabus 2 days early.</p>
+<button class="w-full bg-white/20 backdrop-blur-md text-white py-2.5 rounded-xl text-xs font-bold hover:bg-white/30 transition-all">
+                        View Detailed Stats
+                    </button>
+</div>
+</div>
+</aside>
+</main>
+</body></html>
+
+<!-- Topic Study (Desktop) -->
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StudyLM - Interactive Topic Study</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e0e3e5",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#00174b",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-container-low": "#f2f4f6",
+                        "on-secondary-fixed-variant": "#31447b",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "outline-variant": "#c3c6d7",
+                        "on-background": "#191c1e",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-dim": "#d8dadc",
+                        "background": "#f7f9fb",
+                        "outline": "#737686",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary-container": "#394c84",
+                        "on-surface-variant": "#434655",
+                        "secondary": "#495c95",
+                        "on-primary-fixed": "#00174b",
+                        "surface": "#f7f9fb",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-primary-container": "#eeefff",
+                        "inverse-primary": "#b4c5ff",
+                        "inverse-surface": "#2d3133",
+                        "tertiary": "#943700",
+                        "surface-tint": "#0053db",
+                        "tertiary-container": "#bc4800",
+                        "primary": "#004ac6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#2563eb",
+                        "secondary-container": "#acbfff",
+                        "on-tertiary-container": "#ffede6",
+                        "on-surface": "#191c1e"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e0e3e5;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c3c6d7;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm flex justify-between items-center px-6 h-16">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-700 dark:text-blue-400">StudyLM</span>
+<div class="hidden md:flex gap-6">
+<a class="font-manrope tracking-tight text-sm font-medium text-blue-700 dark:text-blue-400 border-b-2 border-blue-700 dark:border-blue-400 pb-1" href="#">Dashboard</a>
+<a class="font-manrope tracking-tight text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Library</a>
+<a class="font-manrope tracking-tight text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Research</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-fixed overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Stylized avatar of a male student wearing glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUVo-i_rk9FrUm-ae7IIi4RaPGECsbFzQxrhs0TF5UJ7rS55GuJ_lWaghhufxNkTYduDSDyd6r_Golws6Ks7ClpCEsM7Xfq9YrekqmWdsBXAPW0z2lDLsBdQLCF11E6Q8rzo5Lav3Rm8BAtRiESF_V0-NFc9vZs2ae3u5DWahGSco1J7GED__G_bT3ZOpEr7Jw_JH4V2bYEKyUsvz7hKkCbeQd3wzVKjDj0UZ8a_-ypwqLs4RL2PPgNeHmjN3wEEKt6WvTyNWAMzkP"/>
+</div>
+</div>
+</nav>
+<div class="flex h-screen pt-16">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-64 fixed left-0 top-0 pt-16 bg-slate-50 dark:bg-slate-950 flex flex-col py-8 z-40">
+<div class="px-6 mb-8">
+<h3 class="font-manrope uppercase tracking-widest text-[10px] font-bold text-on-surface-variant">Sources</h3>
+<p class="text-xs text-slate-400">Knowledge Base</p>
+</div>
+<nav class="flex-1">
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">book_5</span>
+<span class="font-medium text-sm">Sources</span>
+</div>
+<div class="flex items-center gap-3 bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 rounded-r-full py-3 px-6 border-l-4 border-blue-700 dark:border-blue-400 transition-all cursor-pointer">
+<span class="material-symbols-outlined">history</span>
+<span class="font-medium text-sm">Recent</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">folder_special</span>
+<span class="font-medium text-sm">Collections</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">grade</span>
+<span class="font-medium text-sm">Starred</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-medium text-sm">Archive</span>
+</div>
+</nav>
+<div class="px-6 mt-auto space-y-4">
+<button class="w-full bg-primary-container text-on-primary-container rounded-full py-3 px-4 flex items-center justify-center gap-2 text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Add New Source
+                </button>
+<div class="flex flex-col gap-1 pb-4">
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-2 hover:text-slate-900 transition-colors cursor-pointer text-xs">
+<span class="material-symbols-outlined text-sm">help</span>
+                        Help
+                    </div>
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-2 hover:text-slate-900 transition-colors cursor-pointer text-xs">
+<span class="material-symbols-outlined text-sm">chat_bubble</span>
+                        Feedback
+                    </div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area (Background for Modal) -->
+<main class="ml-64 flex-1 p-8 overflow-y-auto">
+<header class="mb-12">
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">My Library</h1>
+<p class="text-on-surface-variant">Explore your synthesized study materials and research notes.</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Mock Cards -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border-l-4 border-primary shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary-fixed px-2 py-1 rounded">Science</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">more_vert</span>
+</div>
+<h3 class="text-xl font-bold mb-2">The Quantum Mechanics of Photosynthesis</h3>
+<p class="text-sm text-on-surface-variant mb-6 line-clamp-2">Exploring how quantum coherence plays a role in energy transfer within light-harvesting complexes.</p>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-xs">calendar_today</span>
+                        Updated 2h ago
+                    </div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl shadow-sm opacity-50">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-secondary bg-secondary-fixed px-2 py-1 rounded">History</span>
+</div>
+<h3 class="text-xl font-bold mb-2">The Silk Road Dynamics</h3>
+<p class="text-sm text-on-surface-variant mb-6 line-clamp-2">Economic and cultural impacts of the trans-continental trade network between 130 BCE – 1453 CE.</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl shadow-sm opacity-50">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-tertiary bg-tertiary-fixed px-2 py-1 rounded">Economics</span>
+</div>
+<h3 class="text-xl font-bold mb-2">Game Theory in Markets</h3>
+<p class="text-sm text-on-surface-variant mb-6 line-clamp-2">Analyzing oligopolistic competition through the lens of Nash Equilibrium and Strategic Moves.</p>
+</div>
+</div>
+</main>
+</div>
+<!-- Interactive Topic Drawer / Overlay Backdrop -->
+<div class="fixed inset-0 bg-on-surface/10 backdrop-blur-sm z-[60] flex justify-end">
+<!-- Interactive Topic Drawer -->
+<div class="w-full max-w-2xl bg-surface-container-lowest h-full shadow-2xl flex flex-col relative overflow-hidden">
+<!-- Sticky Header -->
+<header class="px-8 py-6 bg-surface-container-lowest border-b-0 flex items-center justify-between sticky top-0 z-10">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div>
+<h2 class="text-2xl font-extrabold tracking-tight text-on-surface leading-none">The Quantum Mechanics of Photosynthesis</h2>
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">Advanced Biology &amp; Physics</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">AI Reading</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto px-12 py-8 space-y-12">
+<!-- Main Body Text -->
+<article class="prose prose-slate max-w-none">
+<p class="text-lg leading-relaxed text-on-surface/90 font-medium mb-8">
+                        Photosynthesis is often regarded as a purely classical chemical process. However, recent groundbreaking research in quantum biology suggests that <span class="bg-primary-fixed px-1 rounded">quantum coherence</span> plays a pivotal role in the efficiency of energy transfer within plants.
+                    </p>
+<div class="bg-surface-container-low p-8 rounded-2xl mb-10 border-l-4 border-primary">
+<h4 class="text-sm font-extrabold uppercase tracking-widest text-primary mb-4">Key Synthesis</h4>
+<p class="text-on-surface-variant leading-relaxed">
+                            Excitons (energy packets) don't simply "hop" from one pigment molecule to another. Instead, they behave like waves, exploring multiple paths simultaneously to find the most efficient route to the reaction center. This phenomenon, known as the <span class="italic font-semibold">Quantum Random Walk</span>, prevents energy loss as heat.
+                        </p>
+</div>
+<h3 class="text-xl font-bold text-on-surface mb-4">Mechanism of Excitation</h3>
+<p class="text-on-surface-variant leading-relaxed mb-6">
+                        When a photon strikes a chlorophyll molecule, it creates an exciton. In a traditional classical model, this exciton would move randomly, akin to a drunkard's walk. However, in the Fenna-Matthews-Olson (FMO) complex, we observe long-lived quantum beats. These beats are evidence that the system is in a superposition of states, allowing for near 100% efficiency.
+                    </p>
+<div class="grid grid-cols-2 gap-4 my-8">
+<div class="aspect-video bg-surface-container-high rounded-xl flex flex-col items-center justify-center p-4 text-center">
+<span class="material-symbols-outlined text-primary text-4xl mb-2">blur_on</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Coherence Waveform</span>
+</div>
+<div class="aspect-video bg-surface-container-high rounded-xl flex flex-col items-center justify-center p-4 text-center">
+<span class="material-symbols-outlined text-secondary text-4xl mb-2">electric_bolt</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Energy Transfer Map</span>
+</div>
+</div>
+<p class="text-on-surface-variant leading-relaxed mb-6">
+                        Understanding these mechanisms is not just academic; it holds the key to developing next-generation photovoltaic cells that could revolutionize how we capture solar energy on Earth.
+                    </p>
+</article>
+<!-- Quiz Me Section -->
+<section class="bg-surface-container-low rounded-3xl p-8 mb-12">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined">quiz</span>
+</div>
+<div>
+<h3 class="text-xl font-extrabold tracking-tight">Quiz Me</h3>
+<p class="text-xs text-on-surface-variant">Test your understanding of the quantum concepts above.</p>
+</div>
+</div>
+<div class="space-y-8">
+<!-- Question 1 -->
+<div class="space-y-4">
+<p class="font-bold text-on-surface">1. What is the primary benefit of "quantum coherence" in the FMO complex?</p>
+<div class="space-y-3">
+<label class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/30 transition-all cursor-pointer group">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="q1" type="radio"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-on-surface">It increases the temperature of the plant.</span>
+</label>
+<label class="flex items-center gap-4 p-4 bg-white rounded-xl border-2 border-primary transition-all cursor-pointer group">
+<input checked="" class="w-4 h-4 text-primary focus:ring-primary" name="q1" type="radio"/>
+<span class="text-sm font-bold text-on-surface">It allows energy to find the most efficient route via multiple paths.</span>
+<span class="material-symbols-outlined text-primary ml-auto" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</label>
+<label class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/30 transition-all cursor-pointer group">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="q1" type="radio"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-on-surface">It prevents the chlorophyll from absorbing too much light.</span>
+</label>
+</div>
+</div>
+<!-- Question 2 -->
+<div class="space-y-4">
+<p class="font-bold text-on-surface">2. What is the classical equivalent of the Quantum Random Walk?</p>
+<div class="space-y-3">
+<label class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/30 transition-all cursor-pointer group">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="q2" type="radio"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-on-surface">Linear Acceleration</span>
+</label>
+<label class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/30 transition-all cursor-pointer group">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="q2" type="radio"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-on-surface">Thermal Convection</span>
+</label>
+<label class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/30 transition-all cursor-pointer group">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="q2" type="radio"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-on-surface">The Drunkard's Walk</span>
+</label>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Sticky Bottom Action Bar -->
+<footer class="p-6 bg-surface-container-lowest border-t-0 flex justify-between items-center shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+<div class="flex items-center gap-2">
+<div class="flex -space-x-2">
+<div class="h-6 w-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="h-6 w-6 rounded-full border-2 border-white bg-slate-300"></div>
+<div class="h-6 w-6 rounded-full border-2 border-white bg-slate-400"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">12 students studying this now</span>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 rounded-full text-sm font-bold text-on-surface hover:bg-surface-container-low transition-all">
+                        Save for later
+                    </button>
+<button class="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-full text-sm font-bold shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">
+                        Check My Answers
+                    </button>
+</div>
+</footer>
+</div>
+</div>
+</body></html>
+
+<!-- Dashboard (Desktop) -->
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StudyLM - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-error-container": "#93000a",
+              "surface-container-highest": "#e0e3e5",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#00174b",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#eceef0",
+              "tertiary-fixed-dim": "#ffb596",
+              "surface-container-low": "#f2f4f6",
+              "on-secondary-fixed-variant": "#31447b",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#dbe1ff",
+              "outline-variant": "#c3c6d7",
+              "on-background": "#191c1e",
+              "on-tertiary-fixed-variant": "#7d2d00",
+              "surface-dim": "#d8dadc",
+              "background": "#f7f9fb",
+              "outline": "#737686",
+              "surface-variant": "#e0e3e5",
+              "surface-bright": "#f7f9fb",
+              "surface-container-high": "#e6e8ea",
+              "primary-fixed-dim": "#b4c5ff",
+              "on-secondary-container": "#394c84",
+              "on-surface-variant": "#434655",
+              "secondary": "#495c95",
+              "on-primary-fixed": "#00174b",
+              "surface": "#f7f9fb",
+              "on-primary-fixed-variant": "#003ea8",
+              "secondary-fixed-dim": "#b4c5ff",
+              "on-primary-container": "#eeefff",
+              "inverse-primary": "#b4c5ff",
+              "inverse-surface": "#2d3133",
+              "tertiary": "#943700",
+              "surface-tint": "#0053db",
+              "tertiary-container": "#bc4800",
+              "primary": "#004ac6",
+              "tertiary-fixed": "#ffdbcd",
+              "inverse-on-surface": "#eff1f3",
+              "primary-fixed": "#dbe1ff",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#360f00",
+              "on-error": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "primary-container": "#2563eb",
+              "secondary-container": "#acbfff",
+              "on-tertiary-container": "#ffede6",
+              "on-surface": "#191c1e"
+            },
+            fontFamily: {
+              "headline": ["Manrope", "sans-serif"],
+              "body": ["Manrope", "sans-serif"],
+              "label": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-shift { background: linear-gradient(135deg, #f2f4f6 0%, #f7f9fb 100%); }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-700 dark:text-blue-400">StudyLM</span>
+<div class="hidden md:flex gap-6">
+<a class="font-manrope tracking-tight text-sm font-medium text-blue-700 dark:text-blue-400 border-b-2 border-blue-700 dark:border-blue-400 pb-1" href="#">Dashboard</a>
+<a class="font-manrope tracking-tight text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Library</a>
+<a class="font-manrope tracking-tight text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Research</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors cursor-pointer" data-icon="notifications">notifications</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer" data-icon="settings">settings</span>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="User profile" class="h-full w-full object-cover" data-alt="User profile circular avatar headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrb8_DX_Sqv2uGVOPeDhplTXoOpqcQckDEsoerFqS1P77kGoTF2U5Y2Rx5A2_TTcUzk4oYKhRCm26MxhdBB4UzI612dbRRTqZ5wUgTgyXkjmagX17FUvwyY_w5XjwycxdeDz0CL9AatwGqup0MpD-J2n7MRhzWhSEKV7WGAzRnQ79Oq0lm_vIZr_YALBppOgf42zA8AQeRWpUj6W11dwoJzHUjRgRdhVXA_8OVDTnL50Spq_AEEE5NNg-0qOO8hkiHWzW1fq1bkvuI"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Hidden on desktop as per Shell Visibility Logic for this Dashboard view, or implemented as floating if needed) -->
+<aside class="h-screen w-64 fixed left-0 top-0 pt-16 bg-slate-50 dark:bg-slate-950 flex flex-col h-full py-8 tonal-shift hidden lg:flex">
+<div class="px-6 mb-8">
+<h2 class="font-manrope uppercase tracking-widest text-[10px] font-bold text-slate-400 mb-1">Knowledge Base</h2>
+<h1 class="text-lg font-bold text-slate-900 dark:text-slate-100">Sources</h1>
+</div>
+<nav class="flex-1">
+<div class="space-y-1">
+<a class="flex items-center gap-3 bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 rounded-r-full py-3 px-6 border-l-4 border-blue-700 dark:border-blue-400 transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="book_5">book_5</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Sources</span>
+</a>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Recent</span>
+</a>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="folder_special">folder_special</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Collections</span>
+</a>
+<a class="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="grade">grade</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Starred</span>
+</a>
+</div>
+</nav>
+<div class="px-6 mt-auto space-y-4">
+<button class="w-full py-3 bg-gradient-to-br from-primary to-primary-container text-white rounded-full font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                Add New Source
+            </button>
+<div class="pt-4 border-t border-slate-200/50 space-y-2">
+<a class="flex items-center gap-3 text-slate-500 text-[10px] font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span> Help
+                </a>
+<a class="flex items-center gap-3 text-slate-500 text-[10px] font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="chat_bubble">chat_bubble</span> Feedback
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-24 px-8 pb-12">
+<header class="mb-10">
+<h1 class="text-3xl font-extrabold tracking-tight text-on-surface mb-2 font-headline">My Notebooks</h1>
+<p class="text-on-surface-variant font-body">Synthesize your research and manage your learning journey.</p>
+</header>
+<!-- Bento Grid for Notebooks -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Create New Notebook Card -->
+<button class="group relative h-64 border-2 border-dashed border-outline-variant hover:border-primary/50 hover:bg-surface-container-low transition-all duration-300 rounded-xl flex flex-col items-center justify-center gap-4 bg-transparent">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest group-hover:bg-primary group-hover:text-white transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</div>
+<span class="font-bold text-sm text-on-surface-variant group-hover:text-primary tracking-tight">Create New Notebook</span>
+</button>
+<!-- Notebook Card 1 -->
+<div class="group h-64 bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] hover:shadow-[0_20px_50px_rgba(25,28,30,0.1)] transition-all duration-300 flex flex-col overflow-hidden">
+<div class="h-2 bg-primary"></div>
+<div class="p-6 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary-container" data-icon="menu_book">menu_book</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 hover:text-on-surface cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface tracking-tight mb-2 group-hover:text-primary transition-colors">Advanced Quantum Mechanics</h3>
+<div class="mt-auto space-y-3">
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">14 Sources</span>
+<span class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Physics</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[11px]">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span>Modified 2 hours ago</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Notebook Card 2 -->
+<div class="group h-64 bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] hover:shadow-[0_20px_50px_rgba(25,28,30,0.1)] transition-all duration-300 flex flex-col overflow-hidden">
+<div class="h-2 bg-tertiary"></div>
+<div class="p-6 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-tertiary" data-icon="history_edu">history_edu</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 hover:text-on-surface cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface tracking-tight mb-2 group-hover:text-tertiary transition-colors">Economic History of Europe</h3>
+<div class="mt-auto space-y-3">
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">8 Sources</span>
+<span class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Economics</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[11px]">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span>Modified Yesterday</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Notebook Card 3 -->
+<div class="group h-64 bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] hover:shadow-[0_20px_50px_rgba(25,28,30,0.1)] transition-all duration-300 flex flex-col overflow-hidden">
+<div class="h-2 bg-on-secondary-container"></div>
+<div class="p-6 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-secondary" data-icon="psychology">psychology</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 hover:text-on-surface cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface tracking-tight mb-2 group-hover:text-secondary transition-colors">Cognitive Neuroscience</h3>
+<div class="mt-auto space-y-3">
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">21 Sources</span>
+<span class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Medicine</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[11px]">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span>Modified 3 days ago</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Notebook Card 4 -->
+<div class="group h-64 bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] hover:shadow-[0_20px_50px_rgba(25,28,30,0.1)] transition-all duration-300 flex flex-col overflow-hidden">
+<div class="h-2 bg-outline"></div>
+<div class="p-6 flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="architecture">architecture</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 hover:text-on-surface cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface tracking-tight mb-2 group-hover:text-primary transition-colors">Sustainable Urbanism</h3>
+<div class="mt-auto space-y-3">
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">5 Sources</span>
+<span class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Design</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant text-[11px]">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span>Modified Oct 12, 2023</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Featured Section (Asymmetric / Bento addition) -->
+<section class="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 bg-primary/5 rounded-xl p-8 border border-primary/10 flex flex-col justify-center relative overflow-hidden">
+<div class="relative z-10">
+<h2 class="text-2xl font-bold text-primary mb-2">Resume where you left off</h2>
+<p class="text-on-surface-variant body-lg mb-6 max-w-md">Continue your research on "Advanced Quantum Mechanics". Your last synthesis was 92% complete.</p>
+<button class="bg-primary text-white px-6 py-2.5 rounded-full font-bold text-sm hover:bg-primary-container transition-colors shadow-lg shadow-primary/20 inline-flex items-center gap-2">
+                        Open Notebook <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- Abstract visual element -->
+<div class="absolute -right-12 -bottom-12 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+<div class="absolute right-12 top-1/2 -translate-y-1/2 opacity-20">
+<span class="material-symbols-outlined text-[120px] text-primary" data-icon="auto_awesome">auto_awesome</span>
+</div>
+</div>
+<div class="bg-surface-container-high rounded-xl p-8 flex flex-col">
+<h2 class="text-lg font-bold text-on-surface mb-4">Quick Stats</h2>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Active Notebooks</span>
+<span class="font-bold text-primary">12</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Sources Analyzed</span>
+<span class="font-bold text-primary">148</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Study Hours (Week)</span>
+<span class="font-bold text-primary">24.5</span>
+</div>
+</div>
+<div class="mt-auto pt-6">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4"></div>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mt-2 text-center">Weekly Goal: 75% Complete</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Contextual FAB (Only on Dashboard) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-3xl" data-icon="chat_sparkle" style="font-variation-settings: 'FILL' 1;">chat_spark</span>
+</button>
+</body></html>
+
