@@ -10,6 +10,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+    volumes:
+      - ./uploads:/app/uploads
+
   backend-python:
     build:
       context: ./backend-python
@@ -23,7 +26,8 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend-dotnet     
+      - backend-dotnet  
+         
   db:
     image: postgres:15-alpine
     container_name: postgres
