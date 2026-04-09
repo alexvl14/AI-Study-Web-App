@@ -1,5 +1,4 @@
-﻿using backend_dotnet.Dtos.Requests;
-using backend_dotnet.Dtos.Responses;
+﻿using backend_dotnet.Dtos.Notebooks;
 namespace backend_dotnet.Services.Interfaces
 {
 	public interface INotebookService
@@ -8,10 +7,10 @@ namespace backend_dotnet.Services.Interfaces
 
 		public Task CreateNotebook(string userId, CreateNotebookRequest request);
 
-		public Task<string> GetNotebook(int notebookId, string notebook);
+		public Task<NotebookDetailsResponse> GetNotebook(string userId, int notebookId);
 
 		public Task DeleteNotebook(string userId, int notebookId);
 
-		public Task UpdateNotebook(string userId, string notebook);
+		public Task UpdateNotebook(string userId, int notebookId, UpdateNotebookRequest request);
 	}
 }

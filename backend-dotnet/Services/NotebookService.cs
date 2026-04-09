@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using backend_dotnet.Data;
-using backend_dotnet.Dtos.Requests;
-using backend_dotnet.Dtos.Responses;
+using backend_dotnet.Dtos.Notebooks;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -33,9 +32,23 @@ namespace backend_dotnet.Services
 			await _context.SaveChangesAsync();
 		}
 		
-		public async Task GetNotebook(string userId)
+		public async Task<NotebookDetailsResponse> GetNotebook(string userId, int notebookId)
 		{
-			throw new NotImplementedException();
+			var notebook = await _context.Notebooks
+				.Include(n => n.StudyPlans)
+				.Include(n => n.UploadedFiles)
+				.Include(n => n.ChatMessages.OrderByDescending(c => c.SendDateTime).Take(15))
+				.FirstOrDefaultAsync(n => n.UserId == userId && n.Id == notebookId);
+
+			if (notebook == null)
+			{
+				throw new KeyNotFoundException("Notebook with this owner and id was not found!");
+			}
+
+			notebook.LastOpenedDateTime = DateTime.UtcNow;
+			await _context.SaveChangesAsync();
+
+			return _mapper.Map<NotebookDetailsResponse>(notebook);
 		}
 
 		public async Task DeleteNotebook(string userId, int notebookId)
@@ -46,7 +59,14 @@ namespace backend_dotnet.Services
 			await _context.SaveChangesAsync();
 		} 
 
+		public async Task UpdateNotebook(string userId, int notebookId, UpdateNotebookRequest request)
+		{
+			var notebook = await GetNotebookWithOwnershipCheck(userId, notebookId);
 
+			_mapper.Map(request,notebook);
+			
+			await _context.SaveChangesAsync();
+		}
 
 		private async Task<Notebook> GetNotebookWithOwnershipCheck(string userId, int notebookId)
 		{

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace backend_dotnet.Dtos.Requests
+namespace backend_dotnet.Dtos.Notebooks
 {
 	public class CreateNotebookRequest
 	{

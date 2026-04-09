@@ -1,4 +1,4 @@
-﻿namespace backend_dotnet.Dtos.Responses
+﻿namespace backend_dotnet.Dtos.Notebooks
 {
 	public class GetNotebooksResponse
 	{
