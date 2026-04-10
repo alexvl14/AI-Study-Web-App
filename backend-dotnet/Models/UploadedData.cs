@@ -16,6 +16,7 @@ namespace backend_dotnet.Models
 		[Required]
 		[MaxLength(100)]
 		public string ContentType { get; set; } = string.Empty;
+		public string TextContent { get; set; } = string.Empty;
 		public long FileSizeBytes { get; set; }
 		public DateTime DateUploaded { get; set; } = DateTime.UtcNow;
 
