@@ -53,6 +53,8 @@ namespace backend_dotnet.Services
 			string relativePath = $"/uploads/notebook_{notebookId}";
 			string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
 
+
+
 			if(!Directory.Exists(absolutePath))
 			{
 				Directory.CreateDirectory(absolutePath);
@@ -109,6 +111,11 @@ namespace backend_dotnet.Services
 				throw new UnauthorizedAccessException("You do not own this file.");
 			}
 			return file;
+		}
+
+		private async Task ParseFileToPdf(FileStream file)
+		{
+			
 		}
 	}
 }
