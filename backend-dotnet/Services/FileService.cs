@@ -11,10 +11,12 @@ namespace backend_dotnet.Services
 	{
 		private readonly ApplicationDbContext _context;
 		private readonly IMapper _mapper;
-		public FileService(ApplicationDbContext context, IMapper mapper)
+		private readonly IHttpClientFactory _httpClientFactory;
+		public FileService(ApplicationDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
 		{
 			_context = context;
 			_mapper = mapper;
+			_httpClientFactory = httpClientFactory;
 		}
 
 		public async Task DeleteFileFromNotebook(string userId, int fileId)
@@ -53,27 +55,26 @@ namespace backend_dotnet.Services
 			string relativePath = $"/uploads/notebook_{notebookId}";
 			string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
 
-
-
 			if(!Directory.Exists(absolutePath))
 			{
 				Directory.CreateDirectory(absolutePath);
 			}
 
 			string fileName = $"{Guid.NewGuid()}_{request.FileName}";
-			absolutePath = Path.Combine(absolutePath, fileName);
+			absolutePath = Path.Combine(absolutePath, Path.ChangeExtension(fileName, ".pdf"));
 
-			using (var stream = new FileStream(absolutePath, FileMode.Create))
-			{
-				await request.CopyToAsync(stream);
-			}
-			//The text Content !!!!!!!
+			using var memoryStream = request.OpenReadStream();
+			var (extractedText, pdfBytes) = await ParseFileToPdfAndText(memoryStream, request.FileName);
+
+			await File.WriteAllBytesAsync(absolutePath, pdfBytes);
+
 			var uploadedFile = new UploadedData
 			{
 				NotebookId = notebookId,
 				FileName = fileName,
 				FilePath = $"{relativePath}/{fileName}",
 				ContentType = request.ContentType,
+				TextContent = extractedText,
 				FileSizeBytes = request.Length
 			};
 
@@ -113,9 +114,39 @@ namespace backend_dotnet.Services
 			return file;
 		}
 
-		private async Task ParseFileToPdf(FileStream file)
+		private async Task<(string, byte[])> ParseFileToPdfAndText(Stream fileStream, string fileName)
 		{
-			
+			using var streamContent = new StreamContent(fileStream);
+
+			using var client = _httpClientFactory.CreateClient("PythonBackend");
+			using var formData = new MultipartFormDataContent();
+
+			formData.Add(streamContent, "file", fileName);
+
+			var response = await client.PostAsync("/extract-text-pdf", formData);
+
+
+			if (!response.IsSuccessStatusCode)
+			{
+				var errorMsg = await response.Content.ReadAsStringAsync();
+				throw new Exception($"Python backend responded with status code {response.StatusCode} : {errorMsg}");
+			}
+
+			var jsonString = await response.Content.ReadAsStringAsync();
+			var convertedResponse = System.Text.Json.JsonSerializer.Deserialize<ConvertedApiResponse>(
+				jsonString,
+				new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+				);
+			string extractedText = convertedResponse.Text;
+			string base64Pdf = convertedResponse.PdfBase64;
+
+			if (string.IsNullOrEmpty(base64Pdf))
+			{
+				throw new Exception($"Python backend return a success status, but the data is missing");
+			}
+			byte[] pdfBytes = Convert.FromBase64String(base64Pdf);
+			return (extractedText, pdfBytes);
+
 		}
 	}
 }

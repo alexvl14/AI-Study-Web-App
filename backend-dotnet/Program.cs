@@ -25,6 +25,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentityApiEndpoints<User>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+//connection with python 
+var pythonAddress = builder.Configuration["ExternalServices:PythonBackendUrl"];
+builder.Services.AddHttpClient(pythonAddress, client =>
+{
+    client.BaseAddress = new Uri(pythonAddress);
+    client.Timeout = TimeSpan.FromSeconds(2);
+
+});
+
 var app = builder.Build();
 
 //apply migrations automatically 
