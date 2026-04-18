@@ -2,6 +2,8 @@ using backend_dotnet.Data;
 using Microsoft.EntityFrameworkCore;
 using backend_dotnet.Models;
 using backend_dotnet.Mappings;
+using backend_dotnet.Services.Interfaces;
+using backend_dotnet.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Mapping
-builder.Services.AddAutoMapper(typeof(NotebookProfile));
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<NotebookProfile>());
 
 //PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -33,6 +35,9 @@ builder.Services.AddHttpClient(pythonAddress, client =>
     client.Timeout = TimeSpan.FromSeconds(2);
 
 });
+
+//Services
+builder.Services.AddScoped<INotebookService, NotebookService>();
 
 var app = builder.Build();
 
