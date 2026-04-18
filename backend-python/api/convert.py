@@ -1,11 +1,10 @@
 from fastapi import APIRouter, UploadFile, File,HTTPException
-from fastapi.responses import FileResponse
 import shutil
 import os
 import uuid
 import tempfile
 import base64
-from services.document import extract_text,convert_to_pdf
+from services.document import convert_to_pdf_and_extract_text
 
 router = APIRouter()
 
@@ -19,9 +18,7 @@ async def extract_text_convert_to_pdf(file:UploadFile = File(...)):
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        extracted_text = extract_text(temp_path)
-        
-        pdf_path = convert_to_pdf(temp_path, result_dir)
+        pdf_path,extracted_text = convert_to_pdf_and_extract_text(temp_path, result_dir)
 
         with open(pdf_path, "rb") as f:
             encoded_pdf = base64.b64encode(f.read()).decode('utf-8')

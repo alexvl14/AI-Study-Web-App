@@ -52,31 +52,64 @@ namespace backend_dotnet.Services
 				throw new KeyNotFoundException("Notebook not found!");
 			}
 
-			string relativePath = $"/uploads/notebook_{notebookId}";
+			string relativePath = $"uploads/notebook_{notebookId}";
 			string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
 
-			if(!Directory.Exists(absolutePath))
+			if (!Directory.Exists(absolutePath))
 			{
 				Directory.CreateDirectory(absolutePath);
 			}
 
-			string fileName = $"{Guid.NewGuid()}_{request.FileName}";
-			absolutePath = Path.Combine(absolutePath, Path.ChangeExtension(fileName, ".pdf"));
+			string originalFileName = $"{Guid.NewGuid()}_{request.FileName}";
 
-			using var memoryStream = request.OpenReadStream();
-			var (extractedText, pdfBytes) = await ParseFileToPdfAndText(memoryStream, request.FileName);
+			UploadedData uploadedFile;
 
-			await File.WriteAllBytesAsync(absolutePath, pdfBytes);
-
-			var uploadedFile = new UploadedData
+			if (request.ContentType == "text/plain")
 			{
-				NotebookId = notebookId,
-				FileName = fileName,
-				FilePath = $"{relativePath}/{fileName}",
-				ContentType = request.ContentType,
-				TextContent = extractedText,
-				FileSizeBytes = request.Length
-			};
+				string extractedText;
+				using (var stream = request.OpenReadStream())
+				{
+					using(var streamReader =  new StreamReader(stream, System.Text.Encoding.UTF8, leaveOpen: true))
+					{
+						extractedText = await streamReader.ReadToEndAsync();
+					}
+
+					stream.Position = 0;
+					using (var fileStream = new FileStream(Path.Combine(absolutePath, originalFileName), FileMode.Create))
+					{
+						await request.CopyToAsync(fileStream);
+					}
+				}
+				uploadedFile = new UploadedData
+				{
+					NotebookId = notebookId,
+					FileName = request.FileName,
+					FilePath = $"{relativePath}/{originalFileName}",
+					ContentType = "text/plain",
+					TextContent = extractedText,
+					FileSizeBytes = request.Length
+				};
+			}
+			else
+			{
+				string pdfFileName = Path.ChangeExtension(originalFileName, ".pdf");
+				absolutePath = Path.Combine(absolutePath, pdfFileName);
+
+				using var memoryStream = request.OpenReadStream();
+				var (extractedText, pdfBytes) = await ParseFileToPdfAndText(memoryStream, request.FileName);
+
+				await File.WriteAllBytesAsync(absolutePath, pdfBytes);
+
+				uploadedFile = new UploadedData
+				{
+					NotebookId = notebookId,
+					FileName = Path.ChangeExtension(request.FileName, ".pdf"),
+					FilePath = $"{relativePath}/{pdfFileName}",
+					ContentType = "application/pdf",
+					TextContent = extractedText,
+					FileSizeBytes = pdfBytes.Length
+				};
+			}
 
 			_context.UploadedFiles.Add(uploadedFile);
 			await _context.SaveChangesAsync();
@@ -97,6 +130,8 @@ namespace backend_dotnet.Services
 			return (stream, file.ContentType, file.FileName);
 		}
 
+
+		//helper functions
 		private async Task<UploadedData> GetFileWithOwnershipCheck(string userId, int fileId)
 		{
 			var file = await _context.UploadedFiles

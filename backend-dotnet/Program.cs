@@ -4,12 +4,9 @@ using backend_dotnet.Models;
 using backend_dotnet.Mappings;
 using backend_dotnet.Services.Interfaces;
 using backend_dotnet.Services;
+using backend_dotnet.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Services
-
-
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -17,7 +14,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Mapping
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<NotebookProfile>());
+builder.Services.AddAutoMapper(cfg => {
+    cfg.AddProfile<NotebookProfile>();
+    cfg.AddProfile<FileProfile>();
+});
 
 //PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -29,18 +29,23 @@ builder.Services.AddIdentityApiEndpoints<User>()
 
 //connection with python 
 var pythonAddress = builder.Configuration["ExternalServices:PythonBackendUrl"];
-builder.Services.AddHttpClient(pythonAddress, client =>
+builder.Services.AddHttpClient("PythonBackend", client =>
 {
     client.BaseAddress = new Uri(pythonAddress);
-    client.Timeout = TimeSpan.FromSeconds(2);
-
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 //Services
 builder.Services.AddScoped<INotebookService, NotebookService>();
+builder.Services.AddScoped<IFilesService, FileService>();
+
+//Error Handling 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 
 var app = builder.Build();
-
+app.UseExceptionHandler();
 //apply migrations automatically 
 using (var scope = app.Services.CreateScope())
 {

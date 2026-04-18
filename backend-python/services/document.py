@@ -1,13 +1,9 @@
 import subprocess
 import os
-from pyxtxt import xtxt
+from pypdf import PdfReader
 
-def extract_text(file_path) -> str:
-    if not os.path.exists(file_path):
-        raise FileNotFoundError("File not found!")
-    return xtxt(file_path)
+def convert_to_pdf_and_extract_text(file_path, output_dir):
 
-def convert_to_pdf(file_path, output_dir) -> str:
     if not os.path.exists(file_path):
         raise FileNotFoundError("File not found!")
     try:
@@ -25,7 +21,12 @@ def convert_to_pdf(file_path, output_dir) -> str:
         pdf_path = os.path.join(output_dir, f"{base_name}.pdf")
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"LibreOffice convertion appered successful, but {pdf_path} was not found!")
-        return pdf_path
+
+        reader = PdfReader(pdf_path)
+        extracted_text = ""
+        for page in reader.pages:
+            extracted_text += page.extract_text()
+        return pdf_path, extracted_text
     except subprocess.CalledProcessError as e:
         raise Exception(f"LibreOffice failed to convert the file to pdf: {e}")
     except Exception as e:
