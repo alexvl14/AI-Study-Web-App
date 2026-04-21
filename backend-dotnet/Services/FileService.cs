@@ -4,6 +4,9 @@ using backend_dotnet.Dtos.Files;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
 
 namespace backend_dotnet.Services
 {
@@ -60,56 +63,29 @@ namespace backend_dotnet.Services
 				Directory.CreateDirectory(absolutePath);
 			}
 
-			string originalFileName = $"{Guid.NewGuid()}_{request.FileName}";
-
-			UploadedData uploadedFile;
-
-			if (request.ContentType == "text/plain")
+			(string extractedText, string extension, byte[] bytes) = request.ContentType switch
 			{
-				string extractedText;
-				using (var stream = request.OpenReadStream())
-				{
-					using(var streamReader =  new StreamReader(stream, System.Text.Encoding.UTF8, leaveOpen: true))
-					{
-						extractedText = await streamReader.ReadToEndAsync();
-					}
+				"text/plain" => await ProcessTextFileAsync(request),
+				"application/pdf" => await ProcessPdfFileAsync(request),
+				_ => await ConvertAndProcessDocumentAsync(request),
+			};
 
-					stream.Position = 0;
-					using (var fileStream = new FileStream(Path.Combine(absolutePath, originalFileName), FileMode.Create))
-					{
-						await request.CopyToAsync(fileStream);
-					}
-				}
-				uploadedFile = new UploadedData
-				{
-					NotebookId = notebookId,
-					FileName = request.FileName,
-					FilePath = $"{relativePath}/{originalFileName}",
-					ContentType = "text/plain",
-					TextContent = extractedText,
-					FileSizeBytes = request.Length
-				};
-			}
-			else
+			string uniqueFileName = $"{Guid.NewGuid()}_{request.FileName}";
+			uniqueFileName = Path.ChangeExtension(uniqueFileName, extension);
+
+			relativePath = Path.Combine(relativePath, uniqueFileName);
+			absolutePath = Path.Combine(absolutePath, uniqueFileName);
+
+			await File.WriteAllBytesAsync(absolutePath, bytes);
+			var uploadedFile = new UploadedData
 			{
-				string pdfFileName = Path.ChangeExtension(originalFileName, ".pdf");
-				absolutePath = Path.Combine(absolutePath, pdfFileName);
-
-				using var memoryStream = request.OpenReadStream();
-				var (extractedText, pdfBytes) = await ParseFileToPdfAndText(memoryStream, request.FileName);
-
-				await File.WriteAllBytesAsync(absolutePath, pdfBytes);
-
-				uploadedFile = new UploadedData
-				{
-					NotebookId = notebookId,
-					FileName = Path.ChangeExtension(request.FileName, ".pdf"),
-					FilePath = $"{relativePath}/{pdfFileName}",
-					ContentType = "application/pdf",
-					TextContent = extractedText,
-					FileSizeBytes = pdfBytes.Length
-				};
-			}
+				NotebookId = notebookId,
+				FileName = request.FileName,
+				FilePath = relativePath,
+				ContentType = request.ContentType == "text/plain" ? "text/plain" : "application/pdf",
+				TextContent = extractedText,
+				FileSizeBytes = bytes.Length
+			};
 
 			_context.UploadedFiles.Add(uploadedFile);
 			await _context.SaveChangesAsync();
@@ -149,17 +125,17 @@ namespace backend_dotnet.Services
 			return file;
 		}
 
-		private async Task<(string, byte[])> ParseFileToPdfAndText(Stream fileStream, string fileName)
+		//return extracted text, extension, file
+		private async Task<(string, string, byte[])> ConvertAndProcessDocumentAsync(IFormFile file)
 		{
-			using var streamContent = new StreamContent(fileStream);
-
+			using var stream = file.OpenReadStream();
+			using var streamContent = new StreamContent(stream);
 			using var client = _httpClientFactory.CreateClient("PythonBackend");
 			using var formData = new MultipartFormDataContent();
 
-			formData.Add(streamContent, "file", fileName);
+			formData.Add(streamContent, "file", file.FileName);
 
-			var response = await client.PostAsync("/extract-text-pdf", formData);
-
+			var response = await client.PostAsync("/parse_to_pdf", formData);
 
 			if (!response.IsSuccessStatusCode)
 			{
@@ -167,21 +143,66 @@ namespace backend_dotnet.Services
 				throw new Exception($"Python backend responded with status code {response.StatusCode} : {errorMsg}");
 			}
 
-			var jsonString = await response.Content.ReadAsStringAsync();
-			var convertedResponse = System.Text.Json.JsonSerializer.Deserialize<ConvertedApiResponse>(
-				jsonString,
-				new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-				);
-			string extractedText = convertedResponse.Text;
-			string base64Pdf = convertedResponse.PdfBase64;
+			using var documentStream = await response.Content.ReadAsStreamAsync();
 
-			if (string.IsNullOrEmpty(base64Pdf))
+			byte[] pdfBytes;
+			using(var ms = new MemoryStream())
+			{
+				await documentStream.CopyToAsync(ms);
+				pdfBytes = ms.ToArray();
+			}
+
+			if (pdfBytes.Length == 0)
 			{
 				throw new Exception($"Python backend return a success status, but the data is missing");
 			}
-			byte[] pdfBytes = Convert.FromBase64String(base64Pdf);
-			return (extractedText, pdfBytes);
+			string extractedText = ReadTextFromPdf(pdfBytes);
+			return (extractedText, ".pdf",pdfBytes);
 
 		}
+		private async Task<(string, string, byte[])> ProcessTextFileAsync(IFormFile file)
+		{
+			string extractedText;
+			byte[] txtBytes;
+			using (var stream = file.OpenReadStream())
+			{
+				using (var streamReader = new StreamReader(stream, System.Text.Encoding.UTF8, leaveOpen: true))
+				{
+					extractedText = await streamReader.ReadToEndAsync();
+				}
+
+				stream.Position = 0;
+				using(var ms = new MemoryStream())
+				{
+					await stream.CopyToAsync(ms);
+					txtBytes = ms.ToArray();
+				}
+			}
+			return (extractedText, ".txt", txtBytes);
+		}
+		private async Task<(string, string, byte[])> ProcessPdfFileAsync(IFormFile file)
+		{
+			using var documentStream = file.OpenReadStream();
+			byte[] pdfBytes;
+			using (var ms = new MemoryStream())
+			{
+				await documentStream.CopyToAsync(ms);
+				pdfBytes = ms.ToArray();
+			}
+			string extractedText = ReadTextFromPdf(pdfBytes);
+			return (extractedText, ".pdf",  pdfBytes);
+		}
+		private string ReadTextFromPdf(byte[] pdfBytes)
+		{
+			StringBuilder stringBuilder = new StringBuilder();
+			using var document = UglyToad.PdfPig.PdfDocument.Open(pdfBytes);
+			foreach(var page in document.GetPages())
+			{
+				stringBuilder.Append(page.Text);
+			}
+			return stringBuilder.ToString();
+		}
+
+
 	}
 }

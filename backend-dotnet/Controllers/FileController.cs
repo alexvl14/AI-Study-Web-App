@@ -33,5 +33,27 @@ namespace backend_dotnet.Controllers
 			return Ok("The file was uploaded successfully.");
 		}
 
+		[HttpDelete]
+		[Route("delete/{fileId}")]
+
+		public async Task<IActionResult> DeleteFile(int fileId)
+		{
+			await _fileService.DeleteFileFromNotebook(UserId, fileId);
+			return Ok("File deleted successfully!");
+		}
+
+		[HttpGet]
+		[Route("get/{fileId}")]
+		public async Task<IActionResult> GetFile(int fileId, [FromQuery] bool download = false) 
+		{
+			var (stream, content_type, fileName) = await _fileService.DownloadFile(UserId, fileId);
+
+			if (download)
+			{
+				return File(stream, content_type, fileName);
+			}
+			return File(stream, content_type);
+		}
+
 	}
 }
