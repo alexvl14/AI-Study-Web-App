@@ -11,25 +11,11 @@ namespace backend_dotnet.Services
 		{
 			_httpClientFactory = httpClientFactory;
 		}
-		public async Task<List<TextChunk>> ProcessEmbedding(string text, int fileId)
+		public async Task<List<TextChunk>> ProcessEmbeddings(string text, int fileId)
 		{
 			var chunks = SplitToChunks(text);
-
-			using var client = _httpClientFactory.CreateClient("PythonBackend");
-			var data = new { texts = chunks };
-			var response = await client.PostAsJsonAsync("/embed", data);
-
-			if (!response.IsSuccessStatusCode)
-			{
-				throw new Exception("An error occurred while trying to embed the text!");
-			}
-
+			var result = await GetEmbedding(chunks);
 			var textChunks = new List<TextChunk>();
-			var result = await response.Content.ReadFromJsonAsync<EmbedResponse>();
-			if(result == null)
-			{
-				throw new Exception("The embedding appeared successful but no embeddings were returned!");
-			}
 			
 			for(int i =0; i < chunks.Count; i++)
 			{
@@ -41,6 +27,31 @@ namespace backend_dotnet.Services
 				});
 			}
 			return textChunks;
+		}
+
+		public async Task<Pgvector.Vector> ProcessSingleEmbedding(string text)
+		{
+			var result = await GetEmbedding(new List<string> { text});
+			return new Pgvector.Vector(result.Embeddings[0]);
+		}
+		
+		private async Task<EmbedResponse> GetEmbedding(List<string> chunks)
+		{
+			using var client = _httpClientFactory.CreateClient("PythonBackend");
+			var data = new { texts = chunks };
+			var response = await client.PostAsJsonAsync("/embed", data);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				throw new Exception("An error occurred while trying to embed the text!");
+			}
+			var result = await response.Content.ReadFromJsonAsync<EmbedResponse>();
+			if (result == null || result.Embeddings == null)
+			{
+				throw new Exception("The embedding appeared successful but no embeddings were returned!");
+			}
+			return result;
+			
 		}
 		private List<string> SplitToChunks(string text, int chunkSize=500, int overlap=50)
 		{

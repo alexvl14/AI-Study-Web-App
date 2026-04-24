@@ -19,7 +19,5 @@ namespace backend_dotnet.Models
 		public Vector? Embedding { get; set; }
 
 		public UploadedData? UploadedData { get; set; }
-
-		
 	}
 }

@@ -11,7 +11,7 @@ namespace backend_dotnet.Models
 		
 		[Required]
 		public string Message { get; set; } = string.Empty;
-		public DateTime SendDateTime { get; set; }
+		public DateTime SendDateTime { get; set; } = DateTime.UtcNow;
 
 		public Notebook? Notebook { get; set; }
 	}

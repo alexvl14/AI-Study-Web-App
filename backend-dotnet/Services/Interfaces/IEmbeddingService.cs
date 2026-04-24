@@ -4,6 +4,8 @@ namespace backend_dotnet.Services.Interfaces
 {
 	public interface IEmbeddingService
 	{
-		public Task<List<TextChunk>> ProcessEmbedding(string text, int fileId);
+		public Task<List<TextChunk>> ProcessEmbeddings(string text, int fileId);
+
+		public Task<Pgvector.Vector> ProcessSingleEmbedding(string text);
 	}
 }

@@ -81,7 +81,7 @@ namespace backend_dotnet.Services
 				await _context.SaveChangesAsync();
 
 				//text embedding
-				var textChunks = await _embeddingService.ProcessEmbedding(extractedText, uploadedFile.Id);
+				var textChunks = await _embeddingService.ProcessEmbeddings(extractedText, uploadedFile.Id);
 				await _context.TextChunks.AddRangeAsync(textChunks);
 				await _context.SaveChangesAsync();
 
