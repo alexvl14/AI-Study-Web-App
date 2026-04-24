@@ -15,11 +15,14 @@ namespace backend_dotnet.Services
 		private readonly ApplicationDbContext _context;
 		private readonly IMapper _mapper;
 		private readonly IHttpClientFactory _httpClientFactory;
-		public FileService(ApplicationDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
+		private readonly IDocumentParser _documentParser;
+		public FileService(ApplicationDbContext context, 
+			IMapper mapper, IHttpClientFactory httpClientFactory, IDocumentParser documentParser)
 		{
 			_context = context;
 			_mapper = mapper;
 			_httpClientFactory = httpClientFactory;
+			_documentParser = documentParser;
 		}
 
 		public async Task DeleteFileFromNotebook(string userId, int fileId)
@@ -55,28 +58,10 @@ namespace backend_dotnet.Services
 				throw new KeyNotFoundException("Notebook not found!");
 			}
 
-			string relativePath = $"uploads/notebook_{notebookId}";
-			string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
+			(string extractedText, string extension, byte[] bytes) = await _documentParser.ParseFile(request);
 
-			if (!Directory.Exists(absolutePath))
-			{
-				Directory.CreateDirectory(absolutePath);
-			}
+			string relativePath = await SaveFileToDisk(notebookId, bytes, request.FileName, extension);
 
-			(string extractedText, string extension, byte[] bytes) = request.ContentType switch
-			{
-				"text/plain" => await ProcessTextFileAsync(request),
-				"application/pdf" => await ProcessPdfFileAsync(request),
-				_ => await ConvertAndProcessDocumentAsync(request),
-			};
-
-			string uniqueFileName = $"{Guid.NewGuid()}_{request.FileName}";
-			uniqueFileName = Path.ChangeExtension(uniqueFileName, extension);
-
-			relativePath = Path.Combine(relativePath, uniqueFileName);
-			absolutePath = Path.Combine(absolutePath, uniqueFileName);
-
-			await File.WriteAllBytesAsync(absolutePath, bytes);
 			var uploadedFile = new UploadedData
 			{
 				NotebookId = notebookId,
@@ -125,84 +110,22 @@ namespace backend_dotnet.Services
 			return file;
 		}
 
-		//return extracted text, extension, file
-		private async Task<(string, string, byte[])> ConvertAndProcessDocumentAsync(IFormFile file)
+		private async Task<string> SaveFileToDisk(int notebookId, byte[] bytes, string fileName, string extension)
 		{
-			using var stream = file.OpenReadStream();
-			using var streamContent = new StreamContent(stream);
-			using var client = _httpClientFactory.CreateClient("PythonBackend");
-			using var formData = new MultipartFormDataContent();
-
-			formData.Add(streamContent, "file", file.FileName);
-
-			var response = await client.PostAsync("/parse_to_pdf", formData);
-
-			if (!response.IsSuccessStatusCode)
+			string relativePath = $"uploads/notebook_{notebookId}";
+			string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
+			if (!Directory.Exists(absolutePath))
 			{
-				var errorMsg = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Python backend responded with status code {response.StatusCode} : {errorMsg}");
+				Directory.CreateDirectory(absolutePath);
 			}
 
-			using var documentStream = await response.Content.ReadAsStreamAsync();
+			string uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+			uniqueFileName = Path.ChangeExtension(uniqueFileName, extension);
 
-			byte[] pdfBytes;
-			using(var ms = new MemoryStream())
-			{
-				await documentStream.CopyToAsync(ms);
-				pdfBytes = ms.ToArray();
-			}
-
-			if (pdfBytes.Length == 0)
-			{
-				throw new Exception($"Python backend return a success status, but the data is missing");
-			}
-			string extractedText = ReadTextFromPdf(pdfBytes);
-			return (extractedText, ".pdf",pdfBytes);
-
+			relativePath = Path.Combine(relativePath, uniqueFileName);
+			absolutePath = Path.Combine(absolutePath, uniqueFileName);
+			await File.WriteAllBytesAsync(absolutePath, bytes);
+			return relativePath;
 		}
-		private async Task<(string, string, byte[])> ProcessTextFileAsync(IFormFile file)
-		{
-			string extractedText;
-			byte[] txtBytes;
-			using (var stream = file.OpenReadStream())
-			{
-				using (var streamReader = new StreamReader(stream, System.Text.Encoding.UTF8, leaveOpen: true))
-				{
-					extractedText = await streamReader.ReadToEndAsync();
-				}
-
-				stream.Position = 0;
-				using(var ms = new MemoryStream())
-				{
-					await stream.CopyToAsync(ms);
-					txtBytes = ms.ToArray();
-				}
-			}
-			return (extractedText, ".txt", txtBytes);
-		}
-		private async Task<(string, string, byte[])> ProcessPdfFileAsync(IFormFile file)
-		{
-			using var documentStream = file.OpenReadStream();
-			byte[] pdfBytes;
-			using (var ms = new MemoryStream())
-			{
-				await documentStream.CopyToAsync(ms);
-				pdfBytes = ms.ToArray();
-			}
-			string extractedText = ReadTextFromPdf(pdfBytes);
-			return (extractedText, ".pdf",  pdfBytes);
-		}
-		private string ReadTextFromPdf(byte[] pdfBytes)
-		{
-			StringBuilder stringBuilder = new StringBuilder();
-			using var document = UglyToad.PdfPig.PdfDocument.Open(pdfBytes);
-			foreach(var page in document.GetPages())
-			{
-				stringBuilder.Append(page.Text);
-			}
-			return stringBuilder.ToString();
-		}
-
-
 	}
 }

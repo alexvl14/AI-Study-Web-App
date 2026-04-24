@@ -13,6 +13,9 @@ namespace backend_dotnet.Data
         public DbSet<QuizQuestion> QuizQuestions { get; set; }
         public DbSet<QuizOption> QuizOptions { get; set; }
         public DbSet<ChatHistory> ChatHistories { get; set; }
+
+        public DbSet<TextChunk> TextChunks { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -20,6 +23,7 @@ namespace backend_dotnet.Data
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
 			base.OnModelCreating(builder);
+            builder.HasPostgresExtension("vector");
 		}
     }
 }

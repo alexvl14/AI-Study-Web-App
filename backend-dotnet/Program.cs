@@ -21,7 +21,8 @@ builder.Services.AddAutoMapper(cfg => {
 
 //PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), 
+    o=>o.UseVector()));
 
 // Identity
 builder.Services.AddIdentityApiEndpoints<User>()
@@ -38,6 +39,7 @@ builder.Services.AddHttpClient("PythonBackend", client =>
 //Services
 builder.Services.AddScoped<INotebookService, NotebookService>();
 builder.Services.AddScoped<IFilesService, FileService>();
+builder.Services.AddScoped<IDocumentParser, DocumentParser>();
 
 //Error Handling 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
