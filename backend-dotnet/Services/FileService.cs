@@ -4,9 +4,6 @@ using backend_dotnet.Dtos.Files;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 
 namespace backend_dotnet.Services
 {
@@ -15,14 +12,17 @@ namespace backend_dotnet.Services
 		private readonly ApplicationDbContext _context;
 		private readonly IMapper _mapper;
 		private readonly IHttpClientFactory _httpClientFactory;
-		private readonly IDocumentParser _documentParser;
+		private readonly IDocumentParserService _documentParser;
+		private readonly IEmbeddingService _embeddingService;
 		public FileService(ApplicationDbContext context, 
-			IMapper mapper, IHttpClientFactory httpClientFactory, IDocumentParser documentParser)
+			IMapper mapper, IHttpClientFactory httpClientFactory, 
+			IDocumentParserService documentParser, IEmbeddingService embeddingService)
 		{
 			_context = context;
 			_mapper = mapper;
 			_httpClientFactory = httpClientFactory;
 			_documentParser = documentParser;
+			_embeddingService = embeddingService;
 		}
 
 		public async Task DeleteFileFromNotebook(string userId, int fileId)
@@ -60,21 +60,41 @@ namespace backend_dotnet.Services
 
 			(string extractedText, string extension, byte[] bytes) = await _documentParser.ParseFile(request);
 
-			string relativePath = await SaveFileToDisk(notebookId, bytes, request.FileName, extension);
+			(string relativePath,string absolutePath) = await SaveFileToDisk(notebookId, bytes, request.FileName, extension);
 
-			var uploadedFile = new UploadedData
-			{
-				NotebookId = notebookId,
-				FileName = request.FileName,
-				FilePath = relativePath,
-				ContentType = request.ContentType == "text/plain" ? "text/plain" : "application/pdf",
-				TextContent = extractedText,
-				FileSizeBytes = bytes.Length
-			};
-
-			_context.UploadedFiles.Add(uploadedFile);
-			await _context.SaveChangesAsync();
 			
+
+			using var transaction = await _context.Database.BeginTransactionAsync();
+			try
+			{
+				var uploadedFile = new UploadedData
+				{
+					NotebookId = notebookId,
+					FileName = request.FileName,
+					FilePath = relativePath,
+					ContentType = request.ContentType == "text/plain" ? "text/plain" : "application/pdf",
+					TextContent = extractedText,
+					FileSizeBytes = bytes.Length
+				};
+
+				await _context.UploadedFiles.AddAsync(uploadedFile);
+				await _context.SaveChangesAsync();
+
+				//text embedding
+				var textChunks = await _embeddingService.ProcessEmbedding(extractedText, uploadedFile.Id);
+				await _context.TextChunks.AddRangeAsync(textChunks);
+				await _context.SaveChangesAsync();
+
+				await transaction.CommitAsync();
+			}
+			catch(Exception)
+			{
+				if (File.Exists(absolutePath))
+				{
+					File.Delete(absolutePath);
+				}
+				throw;
+			}
 		}
 		public async Task<(FileStream Stream, string ContentType, string FileName)> DownloadFile(string userId, int fileId)
 		{
@@ -110,7 +130,7 @@ namespace backend_dotnet.Services
 			return file;
 		}
 
-		private async Task<string> SaveFileToDisk(int notebookId, byte[] bytes, string fileName, string extension)
+		private async Task<(string, string)> SaveFileToDisk(int notebookId, byte[] bytes, string fileName, string extension)
 		{
 			string relativePath = $"uploads/notebook_{notebookId}";
 			string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
@@ -125,7 +145,7 @@ namespace backend_dotnet.Services
 			relativePath = Path.Combine(relativePath, uniqueFileName);
 			absolutePath = Path.Combine(absolutePath, uniqueFileName);
 			await File.WriteAllBytesAsync(absolutePath, bytes);
-			return relativePath;
+			return (relativePath,absolutePath);
 		}
 	}
 }

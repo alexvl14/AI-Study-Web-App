@@ -4,10 +4,10 @@ using System.Text;
 
 namespace backend_dotnet.Services
 {
-	public class DocumentParser : IDocumentParser
+	public class DocumentParserService : IDocumentParserService
 	{
 		private readonly IHttpClientFactory _httpClientFactory;
-		public DocumentParser(IHttpClientFactory httpClientFactory)
+		public DocumentParserService(IHttpClientFactory httpClientFactory)
 		{
 			_httpClientFactory = httpClientFactory;
 		}
@@ -21,19 +21,6 @@ namespace backend_dotnet.Services
 			};
 		}
 
-		public async Task SaveFileToDisk(byte[] bytes,string fileName,string extension ,int notebookId)
-		{
-			string relativePath = $"uploads/notebook_{notebookId}";
-			string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
-
-			string uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
-			uniqueFileName = Path.ChangeExtension(uniqueFileName, extension);
-
-			relativePath = Path.Combine(relativePath, uniqueFileName);
-			absolutePath = Path.Combine(absolutePath, uniqueFileName);
-
-			await File.WriteAllBytesAsync(absolutePath, bytes);
-		}
 		private async Task<(string, string, byte[])> ConvertAndProcessDocumentAsync(IFormFile file)
 		{
 			using var stream = file.OpenReadStream();

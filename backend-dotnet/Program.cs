@@ -39,7 +39,8 @@ builder.Services.AddHttpClient("PythonBackend", client =>
 //Services
 builder.Services.AddScoped<INotebookService, NotebookService>();
 builder.Services.AddScoped<IFilesService, FileService>();
-builder.Services.AddScoped<IDocumentParser, DocumentParser>();
+builder.Services.AddScoped<IDocumentParserService, DocumentParserService>();
+builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
 
 //Error Handling 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
