@@ -13,6 +13,6 @@ namespace backend_dotnet.Models
 		public bool IsCorrect { get; set; }
 		public bool IsSelectedByUser { get; set; }
 
-		public QuizQuestion? Question { get; set; }
+		public QuizQuestion Question { get; set; } = null!;
 	}
 }

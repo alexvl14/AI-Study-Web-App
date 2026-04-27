@@ -41,6 +41,8 @@ builder.Services.AddScoped<INotebookService, NotebookService>();
 builder.Services.AddScoped<IFilesService, FileService>();
 builder.Services.AddScoped<IDocumentParserService, DocumentParserService>();
 builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
+builder.Services.AddScoped<ILLMConnectService, LLMConnectService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 //Error Handling 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

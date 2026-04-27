@@ -13,7 +13,7 @@ namespace backend_dotnet.Models
 		public string Message { get; set; } = string.Empty;
 		public DateTime SendDateTime { get; set; } = DateTime.UtcNow;
 
-		public Notebook? Notebook { get; set; }
+		public Notebook Notebook { get; set; } = null!;
 	}
 
 	public enum Sender

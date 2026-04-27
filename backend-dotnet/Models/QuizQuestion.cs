@@ -11,7 +11,7 @@ namespace backend_dotnet.Models
 		[Required]
 		public string QuestionText { get; set; } = string.Empty;
 
-		public StudyPlan? StudyPlan { get; set; }
+		public StudyPlan StudyPlan { get; set; } = null!;
 		public ICollection<QuizOption> Options { get; set; } = new List<QuizOption>();
 	}
 }

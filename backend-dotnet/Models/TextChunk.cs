@@ -18,6 +18,7 @@ namespace backend_dotnet.Models
 		[Column(TypeName = "vector(384)")]
 		public Vector? Embedding { get; set; }
 
-		public UploadedData? UploadedData { get; set; }
+		[ForeignKey("UploadedFileId")]
+		public UploadedData UploadedData { get; set; } = null!;
 	}
 }

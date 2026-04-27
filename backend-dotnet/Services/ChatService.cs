@@ -1,4 +1,5 @@
 ﻿using backend_dotnet.Data;
+using backend_dotnet.Dtos.Chats;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,7 @@ namespace backend_dotnet.Services
 			_embeddingService = embeddingService;
 			_lLMConnectService = lLMConnectService;
 		}
-		public async Task<string> SendMessageAsync(string userId, int notebookId, string message)
+		public async Task<string> SendMessageAsync(string userId, int notebookId, SendMessageRequest request)
 		{
 			await ValidateOwnershipAsync(userId, notebookId);
 
@@ -27,10 +28,10 @@ namespace backend_dotnet.Services
 			{
 				NotebookId = notebookId,
 				SenderRole = Sender.User,
-				Message = message,
+				Message = request.Message,
 			});
 
-			var relevantContext = await GetRelevantContextAsync(notebookId, message);
+			var relevantContext = await GetRelevantContextAsync(notebookId, request.Message);
 			var chatHistory= await _context.ChatHistories
 				.Where(ch=>ch.NotebookId == notebookId)
 				.OrderBy(ch=>ch.SendDateTime)
@@ -38,30 +39,30 @@ namespace backend_dotnet.Services
 				.ToListAsync();
 
 			string prompt = $@"
-					You are an expert AI tutor.
-					Your task is to answer the user's question using ONLY the provided context.
-					Do NOT use outside knowledge.
-					If the answer cannot be found in the context, respond EXACTLY with:
-					'I cannot find the answer in your notebooks.'
-					---------------------
-					CONTEXT:
-					{string.Join("\n\n", relevantContext)}
-					---------------------
-					RECENT CHAT HISTORY:
-					{string.Join("\n", chatHistory.Select(ch => $"{ch.SenderRole}: {ch.Message}"))}
-					---------------------
-					USER QUESTION:
-					{message}
-					---------------------
-					INSTRUCTIONS:
-					- Answer clearly and concisely.
-					- Base your answer strictly on the context.
-					- If helpful, reference specific parts of the context.
-					- Do not make assumptions or add information not present in the context.
-					- Prefer short explanations unless more detail is necessary.
+You are an expert AI tutor.
+Your task is to answer the user's question using ONLY the provided context.
+Do NOT use outside knowledge.
+If the answer cannot be found in the context, respond EXACTLY with:
+'I cannot find the answer in your notebooks.'
+---------------------
+CONTEXT:
+{string.Join("\n\n", relevantContext)}
+---------------------
+RECENT CHAT HISTORY:
+{string.Join("\n", chatHistory.Select(ch => $"{ch.SenderRole}: {ch.Message}"))}
+---------------------
+USER QUESTION:
+{request.Message}
+---------------------
+INSTRUCTIONS:
+- Answer clearly and concisely.
+- Base your answer strictly on the context.
+- If helpful, reference specific parts of the context.
+- Do not make assumptions or add information not present in the context.
+- Prefer short explanations unless more detail is necessary.
 
-					ANSWER:
-					";
+ANSWER:
+";
 
 			string llmResponse = await _lLMConnectService.GenerateTextAsync(prompt);
 
@@ -83,7 +84,7 @@ namespace backend_dotnet.Services
 				.Include(c=>c.UploadedData)
 				.Where(c=>c.UploadedData.NotebookId == notebookId)
 				.OrderBy(c=>c.Embedding!.CosineDistance(questionVector))
-				.Take(5)
+				.Take(numberOfChunks)
 				.Select(c=>c.Text)
 				.ToListAsync();
 

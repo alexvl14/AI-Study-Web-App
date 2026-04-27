@@ -24,7 +24,7 @@ namespace backend_dotnet.Models
 		public TimeSpan TimeItTookToFinish { get; set; }
 		public int QuizResults { get; set; }
 
-		public Notebook? Notebook { get; set; }
+		public Notebook Notebook { get; set; } = null!;
 		public ICollection<QuizQuestion> Questions { get; set; } = new List<QuizQuestion>();
 	}
 
