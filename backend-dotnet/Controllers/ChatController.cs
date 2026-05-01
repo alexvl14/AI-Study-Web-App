@@ -1,4 +1,4 @@
-﻿using backend_dotnet.Dtos.Chats;
+using backend_dotnet.Dtos.Chats;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +21,13 @@ namespace backend_dotnet.Controllers
 		{
 			string aiResponse = await _chatService.SendMessageAsync(UserId, notebookId, request);
 			return Ok(new { response = aiResponse});
+		}
+
+		[HttpGet("history")]
+		public async Task<IActionResult> GetHistory(int notebookId, [FromQuery] int lastMessageId)
+		{
+			var history = await _chatService.GetHistoryAsync(UserId,notebookId,lastMessageId);
+			return Ok(history);
 		}
 	}
 }

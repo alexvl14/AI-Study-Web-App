@@ -20,6 +20,7 @@ namespace backend_dotnet.Models
 		public long FileSizeBytes { get; set; }
 		public DateTime DateUploaded { get; set; } = DateTime.UtcNow;
 
+		public ICollection<TextChunk> TextChunks { get; set; } = new List<TextChunk>();
 		public Notebook? Notebook { get; set; }
 	}
 }

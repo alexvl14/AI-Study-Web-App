@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using backend_dotnet.Data;
 using backend_dotnet.Dtos.Notebooks;
+using backend_dotnet.Extensions;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +54,7 @@ namespace backend_dotnet.Services
 
 		public async Task DeleteNotebook(string userId, int notebookId)
 		{
-			var notebook = await GetNotebookWithOwnershipCheck(userId, notebookId);
+			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 
 			_context.Notebooks.Remove(notebook);
 			await _context.SaveChangesAsync();
@@ -61,26 +62,11 @@ namespace backend_dotnet.Services
 
 		public async Task UpdateNotebook(string userId, int notebookId, UpdateNotebookRequest request)
 		{
-			var notebook = await GetNotebookWithOwnershipCheck(userId, notebookId);
+			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 
 			_mapper.Map(request,notebook);
 			
 			await _context.SaveChangesAsync();
-		}
-
-		private async Task<Notebook> GetNotebookWithOwnershipCheck(string userId, int notebookId)
-		{
-			var notebook = await _context.Notebooks.FindAsync(notebookId);
-			if(notebook == null)
-			{
-				throw new KeyNotFoundException("Notebook not found.");
-			}
-			if (notebook.UserId != userId)
-			{
-				throw new UnauthorizedAccessException("Owner mismatch.");
-			}
-			return notebook;
-
 		}
 
 	}

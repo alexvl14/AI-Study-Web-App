@@ -17,6 +17,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(cfg => {
     cfg.AddProfile<NotebookProfile>();
     cfg.AddProfile<FileProfile>();
+    cfg.AddProfile<ChatMapping>();
+    cfg.AddProfile<StudyPlanMappings>();
 });
 
 //PostgreSQL

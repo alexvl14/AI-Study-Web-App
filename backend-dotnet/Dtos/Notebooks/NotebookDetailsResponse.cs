@@ -1,4 +1,5 @@
-﻿using backend_dotnet.Models;
+using backend_dotnet.Dtos.Chats;
+using backend_dotnet.Models;
 
 namespace backend_dotnet.Dtos.Notebooks
 {
@@ -14,8 +15,7 @@ namespace backend_dotnet.Dtos.Notebooks
 
 	}
 
-	public record FileResponse(int Id, string FileName, string FileType);
+	public record FileResponse(int Id, string FileName, string ContentType);
 	public record StudyPlanResponse(int Id, string Title, Difficulty DifficultyLevel );
 
-	public record ChatHistoryResponse(int Id, string Message, Sender SenderRole, DateTime SendDateTime);
 }

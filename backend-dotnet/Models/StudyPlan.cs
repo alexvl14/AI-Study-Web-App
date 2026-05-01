@@ -7,14 +7,15 @@ namespace backend_dotnet.Models
 		[Key]
 		public int Id { get; set; }
 		public int NotebookId { get; set; }
-		
+
+		public int SequenceOrder { get; set; }
 		[Required]
 		[MaxLength(50)]
 		public string Title { get; set; } = string.Empty;
 		public bool IsGenerated { get; set; } = false;
 		public Difficulty DifficultyLevel { get; set; }
 		
-		[MaxLength(100)]
+		[MaxLength(1000)]
 		public string Description { get; set; } = string.Empty;
 		
 		[Required]

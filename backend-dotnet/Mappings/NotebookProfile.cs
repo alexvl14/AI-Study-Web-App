@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using backend_dotnet.Dtos.Chats;
 using backend_dotnet.Dtos.Notebooks;
 using backend_dotnet.Models;
 

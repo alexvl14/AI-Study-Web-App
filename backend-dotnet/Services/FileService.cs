@@ -1,6 +1,7 @@
 using AutoMapper;
 using backend_dotnet.Data;
 using backend_dotnet.Dtos.Files;
+using backend_dotnet.Extensions;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +44,6 @@ namespace backend_dotnet.Services
 		{
 			var files = await _context.UploadedFiles
 				.AsNoTracking()
-				//.Include(f => f.Notebook)
 				.Where(f => f.Notebook.UserId == userId && f.NotebookId == notebookId)
 				.ToListAsync();
 
@@ -52,17 +52,11 @@ namespace backend_dotnet.Services
 
 		public async Task UploadFile(string userId, int notebookId, IFormFile request)
 		{
-			var notebook = await _context.Notebooks.FirstOrDefaultAsync(n=>n.UserId == userId && n.Id == notebookId);
-			if(notebook == null)
-			{
-				throw new KeyNotFoundException("Notebook not found!");
-			}
+			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 
 			(string extractedText, string extension, byte[] bytes) = await _documentParser.ParseFile(request);
 
 			(string relativePath,string absolutePath) = await SaveFileToDisk(notebookId, bytes, request.FileName, extension);
-
-			
 
 			using var transaction = await _context.Database.BeginTransactionAsync();
 			try

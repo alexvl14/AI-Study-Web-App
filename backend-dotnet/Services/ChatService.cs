@@ -1,5 +1,7 @@
-﻿using backend_dotnet.Data;
+using AutoMapper;
+using backend_dotnet.Data;
 using backend_dotnet.Dtos.Chats;
+using backend_dotnet.Extensions;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -12,17 +14,20 @@ namespace backend_dotnet.Services
 		private readonly ApplicationDbContext _context;
 		private readonly IEmbeddingService _embeddingService;
 		private readonly ILLMConnectService _lLMConnectService;
+		private readonly IMapper _mapper;
 		public ChatService(ApplicationDbContext context, 
 			IEmbeddingService embeddingService,
-			ILLMConnectService lLMConnectService)
+			ILLMConnectService lLMConnectService,
+			IMapper mapper)
 		{
 			_context = context;
 			_embeddingService = embeddingService;
 			_lLMConnectService = lLMConnectService;
+			_mapper = mapper;
 		}
 		public async Task<string> SendMessageAsync(string userId, int notebookId, SendMessageRequest request)
 		{
-			await ValidateOwnershipAsync(userId, notebookId);
+			await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 
 			await _context.ChatHistories.AddAsync(new ChatHistory
 			{
@@ -76,6 +81,19 @@ ANSWER:
 			return llmResponse;
 		}
 
+		public async Task<ICollection<ChatHistoryResponse>> GetHistoryAsync
+			(string userId, int notebookId, int lastMessageId, int limit = 15)
+		{
+			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
+			var messages = await _context.ChatHistories
+				.Where(ch=>ch.NotebookId == notebook.Id && ch.Id < lastMessageId)
+				.OrderByDescending(ch=>ch.Id)
+				.Take(limit)
+				.ToListAsync();
+	
+			return _mapper.Map<ICollection<ChatHistoryResponse>>(messages);
+		}
+
 		private async Task<List<string>> GetRelevantContextAsync(int notebookId, string message, int numberOfChunks=5)
 		{
 			var questionVector = await _embeddingService.ProcessSingleEmbedding(message);
@@ -91,19 +109,5 @@ ANSWER:
 			return relevantParagraphs;
 		}
 		
-		public async Task<Notebook> ValidateOwnershipAsync(string userId, int notebookId)
-		{
-			var notebook = await _context.Notebooks.FindAsync(notebookId);
-
-			if(notebook == null)
-			{
-				throw new KeyNotFoundException("Notebook not found.");
-			}
-			else if(notebook.UserId != userId)
-			{
-				throw new UnauthorizedAccessException("Owner mismatch");
-			}
-			return notebook;
-		}
 	}
 }
