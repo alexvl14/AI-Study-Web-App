@@ -40,7 +40,7 @@ INSTRUCTIONS:
 1. Review the provided text to understand the core subject, themes, and scope of the material.
 2. Break the material down into a structured sequence of 10 to 20 distinct Study Modules.
 3. Modules must flow in a logical, pedagogical order (e.g., foundational concepts first, advanced applications later).
-4. For each module, provide a clear, professional 'title' and a brief (max 1000 char) 'description' explaining what the student will learn. 
+4. For each module, provide a clear, professional 'title'(max 150 char) and a brief (max 1000 char) 'description' explaining what the student will learn. 
 They will be used later to create the content of the modules.
 5. Base the curriculum strictly on the provided material. Do not invent topics that are not supported by the excerpts.
 6. Format your response strictly according to the required JSON schema.
@@ -103,9 +103,6 @@ If the text is not descriptive enough to build a syllabus, return an empty array
 			await _context.StudyPlans.AddRangeAsync(study_plans);
 			await _context.SaveChangesAsync();
 			return response;
-
-
-
 		}
 	}
 }

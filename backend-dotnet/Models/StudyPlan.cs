@@ -10,7 +10,7 @@ namespace backend_dotnet.Models
 
 		public int SequenceOrder { get; set; }
 		[Required]
-		[MaxLength(50)]
+		[MaxLength(150)]
 		public string Title { get; set; } = string.Empty;
 		public bool IsGenerated { get; set; } = false;
 		public Difficulty DifficultyLevel { get; set; }

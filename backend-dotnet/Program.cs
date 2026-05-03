@@ -45,6 +45,7 @@ builder.Services.AddScoped<IDocumentParserService, DocumentParserService>();
 builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
 builder.Services.AddScoped<ILLMConnectService, LLMConnectService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
 
 //Error Handling 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

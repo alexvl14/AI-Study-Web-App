@@ -16,6 +16,6 @@ namespace backend_dotnet.Dtos.Notebooks
 	}
 
 	public record FileResponse(int Id, string FileName, string ContentType);
-	public record StudyPlanResponse(int Id, string Title, Difficulty DifficultyLevel );
+	public record StudyPlanResponse(int Id, int SequenceOrder, string Title, string Description,Difficulty DifficultyLevel );
 
 }

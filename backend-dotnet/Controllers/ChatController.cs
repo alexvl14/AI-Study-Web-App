@@ -7,7 +7,7 @@ namespace backend_dotnet.Controllers
 {
 	[ApiController]
 	[Authorize]
-	[Route("api/notebook/{notebookId}")]
+	[Route("api/notebook/{notebookId}/chat")]
 	public class ChatController : BaseApiController
 	{
 		private readonly IChatService _chatService;
@@ -16,14 +16,14 @@ namespace backend_dotnet.Controllers
 			_chatService = chatService;
 		}
 
-		[HttpPost("sendMessage")]
+		[HttpPost]
 		public async Task<IActionResult> SendMessage(int notebookId,[FromBody] SendMessageRequest request)
 		{
 			string aiResponse = await _chatService.SendMessageAsync(UserId, notebookId, request);
 			return Ok(new { response = aiResponse});
 		}
 
-		[HttpGet("history")]
+		[HttpGet]
 		public async Task<IActionResult> GetHistory(int notebookId, [FromQuery] int lastMessageId)
 		{
 			var history = await _chatService.GetHistoryAsync(UserId,notebookId,lastMessageId);

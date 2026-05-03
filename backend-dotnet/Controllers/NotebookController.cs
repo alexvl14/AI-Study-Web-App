@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace backend_dotnet.Controllers
 {
 	[ApiController]
-	[Route("api/[controller]")]
+	[Route("api/notebooks")]
 	[Authorize]
 	public class NotebookController : BaseApiController
 	{
@@ -18,7 +18,7 @@ namespace backend_dotnet.Controllers
 			_notebookService = notebookService;
 		}
 
-		[HttpGet("getAll")]
+		[HttpGet]
 		public async Task<IActionResult> GetAllNotebooks()
 		{
 			var notebooks =  await _notebookService.GetAllNotebooksByUser(UserId);
@@ -26,14 +26,14 @@ namespace backend_dotnet.Controllers
 			return Ok(notebooks);
 		}
 
-		[HttpPost("create")]
+		[HttpPost]
 		public async Task<IActionResult> CreateNotebook(CreateNotebookRequest request)
 		{
 			await _notebookService.CreateNotebook(UserId, request);
 			return Ok("Notebook created successfully");
 		}
 
-		[HttpDelete("delete/{notebookId}")]
+		[HttpDelete("{notebookId}")]
 
 		public async Task<IActionResult> DeleteNotebook(int notebookId)
 		{
@@ -41,14 +41,14 @@ namespace backend_dotnet.Controllers
 			return Ok("Notebook was deleted successfully");
 		}
 
-		[HttpPatch("update/{notebookId}")]
+		[HttpPatch("{notebookId}")]
 		public async Task<IActionResult> UpdateNotebook(int notebookId, UpdateNotebookRequest request)
 		{
 			await _notebookService.UpdateNotebook(UserId,notebookId,request);
 			return Ok("Notebook updated successfully");
 		}
 
-		[HttpGet("open/{notebookId}")]
+		[HttpGet("{notebookId}")]
 		public async Task<IActionResult> OpenNotebook(int notebookId)
 		{
 			var notebookDetails = await _notebookService.GetNotebook(UserId, notebookId);

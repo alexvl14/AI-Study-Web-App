@@ -13,6 +13,8 @@ namespace backend_dotnet.Services
 		}
 		public async Task<(string extractedText, string extension, byte[] bytes)> ParseFile(IFormFile request)
 		{
+		
+
 			return request.ContentType switch
 			{
 				"text/plain" => await ProcessTextFileAsync(request),

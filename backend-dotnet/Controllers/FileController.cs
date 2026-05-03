@@ -6,7 +6,7 @@ namespace backend_dotnet.Controllers
 {
 	[ApiController]
 	[Authorize]
-	[Route("api/file")]
+	[Route("api/notebooks/{notebookId}/files")]
 	public class FileController : BaseApiController
 	{
 		private readonly IFilesService _fileService;
@@ -17,7 +17,6 @@ namespace backend_dotnet.Controllers
 		}
 
 		[HttpGet]
-		[Route("getAll/{notebookId}")]
 		public async Task<IActionResult> GetFilesForNotebook(int notebookId)
 		{
 			var notebooks = await _fileService.GetFilesForNotebook(UserId, notebookId);
@@ -25,7 +24,6 @@ namespace backend_dotnet.Controllers
 		}
 
 		[HttpPost]
-		[Route("upload/{notebookId}")]
 
 		public async Task<IActionResult> UploadFile(int notebookId, IFormFile file)
 		{
@@ -34,8 +32,7 @@ namespace backend_dotnet.Controllers
 		}
 
 		[HttpDelete]
-		[Route("delete/{fileId}")]
-
+		[Route("{fileId}")]
 		public async Task<IActionResult> DeleteFile(int fileId)
 		{
 			await _fileService.DeleteFileFromNotebook(UserId, fileId);
@@ -43,7 +40,7 @@ namespace backend_dotnet.Controllers
 		}
 
 		[HttpGet]
-		[Route("get/{fileId}")]
+		[Route("{fileId}")]
 		public async Task<IActionResult> GetFile(int fileId, [FromQuery] bool download = false) 
 		{
 			var (stream, content_type, fileName) = await _fileService.DownloadFile(UserId, fileId);
