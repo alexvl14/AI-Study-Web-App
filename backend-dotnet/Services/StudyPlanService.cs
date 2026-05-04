@@ -6,6 +6,7 @@ using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 using Google.GenAI.Types;
 using Microsoft.EntityFrameworkCore;
+using System.Collections;
 using System.Text.Json;
 
 namespace backend_dotnet.Services
@@ -14,12 +15,16 @@ namespace backend_dotnet.Services
 	{
 		private readonly ApplicationDbContext _context;
 		private readonly ILLMConnectService _lLMConnectService;
+		private readonly IEmbeddingService _embeddingService;
 		private readonly IMapper _mapper;
-		public StudyPlanService(ApplicationDbContext context, ILLMConnectService lLMConnectService,
+		public StudyPlanService(ApplicationDbContext context, 
+			ILLMConnectService lLMConnectService,
+			IEmbeddingService embeddingService,
 			IMapper mapper)
 		{
 			_context = context;
 			_lLMConnectService = lLMConnectService;
+			_embeddingService = embeddingService;
 			_mapper = mapper;
 		}
 
@@ -103,6 +108,206 @@ If the text is not descriptive enough to build a syllabus, return an empty array
 			await _context.StudyPlans.AddRangeAsync(study_plans);
 			await _context.SaveChangesAsync();
 			return response;
+		}
+
+		public async Task GenerateStudyPlanContextAsync(string userId, int notebookId, int studyPlanId, int numberOfQuestions =5)
+		{
+			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
+			var studyPlan = await _context.StudyPlans
+				.FirstOrDefaultAsync(sp=>sp.Id == studyPlanId && sp.NotebookId == notebookId);
+			if (studyPlan == null)
+			{
+				throw new KeyNotFoundException($"Study plan with id : {studyPlanId} was not found!");
+			}
+			if (studyPlan.IsGenerated)
+			{
+				return;
+			}
+
+			var embededDescription  = await _embeddingService.ProcessSingleEmbedding(studyPlan.Description);
+			var relevantContext = await _context.GetRelevantContextAsync(notebookId,embededDescription);
+
+			var contentSchema = new Schema
+			{
+				Type = Google.GenAI.Types.Type.Object,
+				Properties = new Dictionary<string, Schema>
+				{
+					["content"] = new Schema
+					{
+						Type = Google.GenAI.Types.Type.String,
+						Description = "The highly readable, beautifully formatted markdown " +
+						"educational lesson based strictly on the context."
+
+					},
+					["quiz"] = new Schema
+					{
+						Type = Google.GenAI.Types.Type.Array,
+						Description = $"A {numberOfQuestions}-question multiple choice quiz testing the user on the markdownContent",
+						Items = new Schema
+						{
+							Type = Google.GenAI.Types.Type.Object,
+							Properties = new Dictionary<string, Schema>
+							{
+								["questionText"] = new Schema
+								{
+									Type = Google.GenAI.Types.Type.String
+								},
+								["options"] = new Schema
+								{
+									Type = Google.GenAI.Types.Type.Array,
+									Items = new Schema
+									{
+										Type = Google.GenAI.Types.Type.Object,
+										Properties = new Dictionary<string, Schema>
+										{
+											["optionText"] = new Schema
+											{
+												Type = Google.GenAI.Types.Type.String
+											},
+											["isCorrect"] = new Schema
+											{
+												Type = Google.GenAI.Types.Type.Boolean
+											}
+										},
+										Required = new List<string> { "optionText", "isCorrect"}
+									}
+									
+								}
+							},
+							Required = new List<string> { "questionText", "options"}
+						}
+						
+					}
+				},
+				Required = new List<string> { "content", "quiz"}
+			};
+
+			string prompt = $@"You are an expert academic tutor. 
+Your task is to write a comprehensive educational lesson AND generate a multiple-choice quiz based strictly on the provided context material.
+LESSON OBJECTIVE:
+Title: {studyPlan.Title}
+Description: {studyPlan.Description}
+INSTRUCTIONS:
+1. 'content': Write a complete educational lesson structured beautifully using Markdown (Headings, bullet points, bold text).
+2. 'quiz': Generate exactly {numberOfQuestions} multiple choice questions that test the student on the lesson you just wrote.
+3. CRITICAL: Provide exactly 4 options per question. Only ONE option can have 'isCorrect' set to true.
+4. CRITICAL: Base the entire lesson and quiz STRICTLY on the provided context. Do not invent facts not present in the context.
+CONTEXT MATERIAL FOR THE LESSON:
+--------------------------------------------------
+{string.Join("\n\n", relevantContext)}
+--------------------------------------------------";
+
+			var aiResponse = await _lLMConnectService.GenerateStructuredDataAsync(prompt, contentSchema);
+			var response = JsonSerializer.Deserialize<StudyPlanDto>(aiResponse,new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true
+			});
+			if(string.IsNullOrWhiteSpace(response?.Content) || response.Quiz.Count == 0)
+			{
+				throw new Exception("An error occurred while generating module");
+			}
+
+			studyPlan.Content = response.Content;
+			studyPlan.IsGenerated = true;
+
+			var mappedQuestion = _mapper.Map<ICollection<QuizQuestion>>(response.Quiz);
+
+			foreach(var question in mappedQuestion)
+			{
+				studyPlan.Questions.Add(question);
+			}
+
+			await _context.SaveChangesAsync();
+		}
+
+		public async Task<StudyPlanResponse> GetStudyPlanAsync(string userId, int notebookId, int studyPlanId)
+		{
+			await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
+			var studyPlan = await _context.StudyPlans
+				.Include(sp => sp.Questions)
+				.ThenInclude(q => q.Options)
+				.FirstOrDefaultAsync(sp=>sp.Id == studyPlanId && sp.NotebookId == notebookId);
+			
+			if(studyPlan == null)
+			{
+				throw new KeyNotFoundException("Module not found for this notebook!");
+			}
+
+			if (!studyPlan.IsGenerated)
+			{
+				throw new Exception("Generate the module first!");
+			}
+			studyPlan.IsStarted = true;
+			var mappedStudyPlan = _mapper.Map<StudyPlanResponse>(studyPlan);
+			return mappedStudyPlan;
+
+		}
+
+		public async Task UpdateTimeSpendAsync(string userId, int notebookId, int studyPlanId, int secondsSpent)
+		{
+			var studyPlan = await ValidateStudyPlanOwnershipCheck(userId, notebookId, studyPlanId);
+
+			if (!studyPlan.IsFinished)
+			{
+				studyPlan.IsStarted = true;
+				studyPlan.TimeItTookToFinish += TimeSpan.FromSeconds(secondsSpent);
+				await _context.SaveChangesAsync();
+			}
+		}
+
+		public async Task<int> SubmitQuizAsync(string userId, int notebookId, int studyPlanId, QuizSubmitRequest request)
+		{
+			await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
+			var studyPlan = await _context.StudyPlans
+				.Include(sp=>sp.Questions)
+				.ThenInclude(s => s.Options)
+				.FirstOrDefaultAsync(sp=>sp.NotebookId == notebookId && sp.Id == studyPlanId);
+			if(studyPlan == null)
+			{
+				throw new KeyNotFoundException("Module not found for this notebook!");
+			}
+			int score = 0;
+			foreach(KeyValuePair<int,int> answer in request.answers)
+			{
+				var question = studyPlan.Questions.FirstOrDefault(q => q.Id == answer.Key);
+				if(question == null)
+				{
+					throw new KeyNotFoundException("Invalid question id!");
+				}
+				var option = question.Options.FirstOrDefault(o => o.IsCorrect);
+				if(option != null && option.Id == answer.Value)
+				{
+					score++;
+					option.IsSelectedByUser = true;
+				}
+				else
+				{
+					var selectedOption = question.Options.FirstOrDefault(o=>o.Id == answer.Key);
+					if(selectedOption != null)
+					{
+						selectedOption.IsSelectedByUser = true;
+					}
+				}
+			}
+			studyPlan.QuizResults = score;
+			studyPlan.IsFinished = true;
+			await _context.SaveChangesAsync();
+			return score;
+		}
+
+		private async Task<StudyPlan> ValidateStudyPlanOwnershipCheck(string userId,int notebookId, int studyPlanId)
+		{
+			await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
+			var studyPlan = await _context.StudyPlans.FindAsync(studyPlanId);
+			if(studyPlan == null)
+			{
+				throw new KeyNotFoundException("Module not found!");
+			}
+			if(studyPlan.NotebookId != notebookId)
+			{
+				throw new UnauthorizedAccessException("The module doesn't belong to the notebook!");
+			}
+			return studyPlan;
 		}
 	}
 }

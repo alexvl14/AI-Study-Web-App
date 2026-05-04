@@ -10,6 +10,14 @@ namespace backend_dotnet.Mappings
 		{
 
 			CreateMap<SyllabusItem, StudyPlan>();
+
+			CreateMap<QuizOptionDto, QuizOption>();
+			CreateMap<QuizQuestionDto, QuizQuestion>();
+
+			CreateMap<StudyPlan, StudyPlanResponse>();
+			CreateMap<QuizQuestion, QuizQuestionResponse>();
+			CreateMap<QuizOption, QuizOptionResponse>();
+
 		}
 	}
 }

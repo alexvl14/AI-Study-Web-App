@@ -22,8 +22,10 @@ namespace backend_dotnet.Models
 		public string Content { get; set; } = string.Empty;
 		
 		public bool IsStarted { get; set; } = false;
-		public TimeSpan TimeItTookToFinish { get; set; }
+		public TimeSpan TimeItTookToFinish { get; set; } = TimeSpan.Zero;
 		public int QuizResults { get; set; }
+		public bool IsQuizCompleted { get; set; } = false;
+		public bool IsFinished { get; set; } = false;
 
 		public Notebook Notebook { get; set; } = null!;
 		public ICollection<QuizQuestion> Questions { get; set; } = new List<QuizQuestion>();
