@@ -31,6 +31,13 @@ namespace backend_dotnet.Services
 		public async Task<SyllabusResponse> GenerateSyllabusAsync(string userId, int notebookId, int textChunksFromFile = 10)
 		{
 			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
+			//deleting the old ones
+			var existingStudyPlans = await _context.StudyPlans
+				.Where(sp => sp.NotebookId == notebookId).ToListAsync();
+			if(existingStudyPlans.Any())
+			{
+				_context.StudyPlans.RemoveRange(existingStudyPlans);
+			}
 
 			var files = await _context.UploadedFiles
 				.Where(f => f.NotebookId == notebookId)
@@ -49,6 +56,7 @@ INSTRUCTIONS:
 They will be used later to create the content of the modules.
 5. Base the curriculum strictly on the provided material. Do not invent topics that are not supported by the excerpts.
 6. Format your response strictly according to the required JSON schema.
+7. Analyze the topic's complexity and assign an integer: 0 (Easy), 1 (Medium), or 2 (Hard)
 
 TEXT EXCERPTS FOR ANALYSIS:
 --------------------------------------------------
@@ -78,6 +86,9 @@ If the text is not descriptive enough to build a syllabus, return an empty array
 								},
 								{
 									"description", new Schema{ Type = Google.GenAI.Types.Type.String, Title="Description"}
+								},
+								{
+									"difficultyLevel", new Schema{Type=Google.GenAI.Types.Type.Integer, Title="DifficultyLevel"}
 								}
 							},
 							Required = new List<string> {"sequenceOrder", "title", "description"}
@@ -102,7 +113,6 @@ If the text is not descriptive enough to build a syllabus, return an empty array
 			foreach(var studyPlan in study_plans)
 			{
 				studyPlan.NotebookId = notebookId;
-				studyPlan.DifficultyLevel = Difficulty.Medium;
 			}
 
 			await _context.StudyPlans.AddRangeAsync(study_plans);
@@ -112,9 +122,7 @@ If the text is not descriptive enough to build a syllabus, return an empty array
 
 		public async Task GenerateStudyPlanContextAsync(string userId, int notebookId, int studyPlanId, int numberOfQuestions =5)
 		{
-			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
-			var studyPlan = await _context.StudyPlans
-				.FirstOrDefaultAsync(sp=>sp.Id == studyPlanId && sp.NotebookId == notebookId);
+			var studyPlan = await ValidateStudyPlanOwnershipCheck(userId, notebookId, studyPlanId);
 			if (studyPlan == null)
 			{
 				throw new KeyNotFoundException($"Study plan with id : {studyPlanId} was not found!");
@@ -237,22 +245,21 @@ CONTEXT MATERIAL FOR THE LESSON:
 			{
 				throw new Exception("Generate the module first!");
 			}
-			studyPlan.IsStarted = true;
 			var mappedStudyPlan = _mapper.Map<StudyPlanResponse>(studyPlan);
 			return mappedStudyPlan;
 
 		}
 
-		public async Task UpdateTimeSpendAsync(string userId, int notebookId, int studyPlanId, int secondsSpent)
+		public async Task<TimeSpan> UpdateTimeSpendAsync(string userId, int notebookId, int studyPlanId, int secondsSpent)
 		{
 			var studyPlan = await ValidateStudyPlanOwnershipCheck(userId, notebookId, studyPlanId);
 
 			if (!studyPlan.IsFinished)
 			{
-				studyPlan.IsStarted = true;
 				studyPlan.TimeItTookToFinish += TimeSpan.FromSeconds(secondsSpent);
 				await _context.SaveChangesAsync();
 			}
+			return studyPlan.TimeItTookToFinish;
 		}
 
 		public async Task<int> SubmitQuizAsync(string userId, int notebookId, int studyPlanId, QuizSubmitRequest request)
@@ -274,21 +281,17 @@ CONTEXT MATERIAL FOR THE LESSON:
 				{
 					throw new KeyNotFoundException("Invalid question id!");
 				}
-				var option = question.Options.FirstOrDefault(o => o.IsCorrect);
-				if(option != null && option.Id == answer.Value)
+				var selectedOption = question.Options.FirstOrDefault(o=>o.Id == answer.Value);
+				if(selectedOption != null)
 				{
-					score++;
-					option.IsSelectedByUser = true;
-				}
-				else
-				{
-					var selectedOption = question.Options.FirstOrDefault(o=>o.Id == answer.Key);
-					if(selectedOption != null)
+					selectedOption.IsSelectedByUser = true;
+					if (selectedOption.IsCorrect)
 					{
-						selectedOption.IsSelectedByUser = true;
+						score++;
 					}
 				}
 			}
+			studyPlan.IsQuizCompleted = true;
 			studyPlan.QuizResults = score;
 			studyPlan.IsFinished = true;
 			await _context.SaveChangesAsync();

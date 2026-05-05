@@ -20,8 +20,7 @@ namespace backend_dotnet.Models
 		
 		[Required]
 		public string Content { get; set; } = string.Empty;
-		
-		public bool IsStarted { get; set; } = false;
+	
 		public TimeSpan TimeItTookToFinish { get; set; } = TimeSpan.Zero;
 		public int QuizResults { get; set; }
 		public bool IsQuizCompleted { get; set; } = false;

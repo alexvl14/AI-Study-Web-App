@@ -31,11 +31,13 @@ builder.Services.AddIdentityApiEndpoints<User>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 //connection with python 
-var pythonAddress = builder.Configuration["ExternalServices:PythonBackendUrl"];
+var pythonAddress = builder.Configuration["ExternalServices:Python:ServiceUrl"];
+var pythonApiKey = builder.Configuration["ExternalServices:Python:ApiKey"];
 builder.Services.AddHttpClient("PythonBackend", client =>
 {
     client.BaseAddress = new Uri(pythonAddress);
     client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("DotNet-API-KEY", pythonApiKey);
 });
 
 //Services

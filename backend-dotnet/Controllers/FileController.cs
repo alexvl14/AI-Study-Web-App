@@ -24,9 +24,13 @@ namespace backend_dotnet.Controllers
 		}
 
 		[HttpPost]
-
+		[RequestSizeLimit(10*1024*1024)]
 		public async Task<IActionResult> UploadFile(int notebookId, IFormFile file)
 		{
+			if(file.Length > 10 * 1024 * 1024)
+			{
+				return BadRequest("File size cannot exceed 10MB");
+			}
 			await _fileService.UploadFile(UserId, notebookId, file);
 			return Ok("The file was uploaded successfully.");
 		}
