@@ -53,6 +53,15 @@ builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+//frontend connection 
+builder.Services.AddCors(option=>{
+    option.AddPolicy("AllowFrontend", policy=>{
+        policy.WithOrigins("http://localhost:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -76,6 +85,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseCors("AllowFrontend");
 
 app.MapControllers();
 
