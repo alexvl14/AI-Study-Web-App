@@ -28,7 +28,7 @@ namespace backend_dotnet.Services
 			_mapper = mapper;
 		}
 
-		public async Task<SyllabusResponse> GenerateSyllabusAsync(string userId, int notebookId, int textChunksFromFile = 10)
+		public async Task<ICollection<GetStudyPlanResponse>> GenerateSyllabusAsync(string userId, int notebookId, int textChunksFromFile = 10)
 		{
 			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 			//deleting the old ones
@@ -117,7 +117,7 @@ If the text is not descriptive enough to build a syllabus, return an empty array
 
 			await _context.StudyPlans.AddRangeAsync(study_plans);
 			await _context.SaveChangesAsync();
-			return response;
+			return _mapper.Map<ICollection<GetStudyPlanResponse>>(study_plans);
 		}
 
 		public async Task GenerateStudyPlanContextAsync(string userId, int notebookId, int studyPlanId, int numberOfQuestions =5)

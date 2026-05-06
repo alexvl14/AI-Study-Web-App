@@ -50,7 +50,7 @@ namespace backend_dotnet.Services
 			return _mapper.Map<ICollection<GetFilesForNotebookResponse>>(files);
 		}
 
-		public async Task UploadFile(string userId, int notebookId, IFormFile request)
+		public async Task<GetFilesForNotebookResponse> UploadFile(string userId, int notebookId, IFormFile request)
 		{
 			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 
@@ -80,6 +80,7 @@ namespace backend_dotnet.Services
 				await _context.SaveChangesAsync();
 
 				await transaction.CommitAsync();
+				return _mapper.Map<GetFilesForNotebookResponse>(uploadedFile);
 			}
 			catch(Exception)
 			{

@@ -8,7 +8,7 @@ namespace backend_dotnet.Services.Interfaces
 
 		public Task DeleteFileFromNotebook(string userId, int fileId);
 
-		public Task UploadFile(string userId, int notebookId, IFormFile request);
+		public Task<GetFilesForNotebookResponse> UploadFile(string userId, int notebookId, IFormFile request);
 
 		public Task<(FileStream Stream, string ContentType, string FileName)> DownloadFile(string userId, int fileId);
 

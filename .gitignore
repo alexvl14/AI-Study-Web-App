@@ -62,7 +62,7 @@ backend-python/env/
 backend-python/.venv/
 
 backend-dotnet/uploads/
-
+uploads/
 # Jupyter Notebook checkpoints
 backend-python/.ipynb_checkpoints/
 

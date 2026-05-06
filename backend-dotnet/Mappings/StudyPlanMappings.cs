@@ -18,6 +18,8 @@ namespace backend_dotnet.Mappings
 			CreateMap<QuizQuestion, QuizQuestionResponse>();
 			CreateMap<QuizOption, QuizOptionResponse>();
 
+			CreateMap<StudyPlan, GetStudyPlanResponse>();
+
 		}
 	}
 }

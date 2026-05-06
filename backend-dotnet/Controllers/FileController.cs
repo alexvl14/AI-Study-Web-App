@@ -31,8 +31,8 @@ namespace backend_dotnet.Controllers
 			{
 				return BadRequest("File size cannot exceed 10MB");
 			}
-			await _fileService.UploadFile(UserId, notebookId, file);
-			return Ok("The file was uploaded successfully.");
+			var fileData = await _fileService.UploadFile(UserId, notebookId, file);
+			return Ok(fileData);
 		}
 
 		[HttpDelete]
