@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using backend_dotnet.Data;
 using backend_dotnet.Dtos.Notebooks;
 using backend_dotnet.Extensions;
@@ -55,6 +55,12 @@ namespace backend_dotnet.Services
 		public async Task DeleteNotebook(string userId, int notebookId)
 		{
 			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
+
+			string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), $"uploads/notebook_{notebookId}");
+			if (Directory.Exists(directoryPath))
+			{
+				Directory.Delete(directoryPath, true);
+			}
 
 			_context.Notebooks.Remove(notebook);
 			await _context.SaveChangesAsync();

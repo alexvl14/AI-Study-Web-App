@@ -38,8 +38,9 @@ frontend/yarn-error.log*
 # 3. BACKEND: ASP.NET CORE (C#)
 # =========================
 # Build results
-backend-dotnet/bin/
-backend-dotnet/obj/
+**/bin/
+**/obj/
+
 
 # Local user secrets and development settings
 backend-dotnet/appsettings.Development.json
@@ -65,6 +66,11 @@ backend-dotnet/uploads/
 uploads/
 # Jupyter Notebook checkpoints
 backend-python/.ipynb_checkpoints/
+
+# Test project build results
+backend-dotnet.Tests/bin/
+backend-dotnet.Tests/obj/
+
 
 # Large Machine Learning Models (Optional but recommended)
 # If your .joblib or .onnx files become very large, you shouldn't push them to GitHub.

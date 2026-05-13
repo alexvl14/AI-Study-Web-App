@@ -2,7 +2,7 @@
 
 namespace backend_dotnet.Dtos.StudyPlans
 {
-	public class StudyPlanResponse
+	public class FullStudyPlanResponse
 	{
 		public int Id { get; set; }
 		public int SequenceOrder { get; set; }

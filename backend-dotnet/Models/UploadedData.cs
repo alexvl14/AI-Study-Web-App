@@ -8,7 +8,7 @@ namespace backend_dotnet.Models
 		public int Id { get; set; }
 		public int NotebookId { get; set; }
 		[Required]
-		[MaxLength(50)]
+		[MaxLength(200)]
 		public string FileName { get; set; } = string.Empty;
 		[Required]
 		[MaxLength(500)]

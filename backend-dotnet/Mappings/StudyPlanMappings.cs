@@ -14,7 +14,7 @@ namespace backend_dotnet.Mappings
 			CreateMap<QuizOptionDto, QuizOption>();
 			CreateMap<QuizQuestionDto, QuizQuestion>();
 
-			CreateMap<StudyPlan, StudyPlanResponse>();
+			CreateMap<StudyPlan, FullStudyPlanResponse>();
 			CreateMap<QuizQuestion, QuizQuestionResponse>();
 			CreateMap<QuizOption, QuizOptionResponse>();
 

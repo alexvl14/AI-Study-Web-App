@@ -8,5 +8,6 @@ namespace backend_dotnet.Dtos.StudyPlans
 		public string Description { get; set; } = string.Empty;
 		public int DifficultyLevel { get; set; }
 		public int IsGenerated { get; set; }
+		public bool IsFinished { get; set; }
 	}
 }

@@ -39,10 +39,7 @@ namespace backend_dotnet.Services
 				_context.StudyPlans.RemoveRange(existingStudyPlans);
 			}
 
-			var files = await _context.UploadedFiles
-				.Where(f => f.NotebookId == notebookId)
-				.Include(f => f.TextChunks.OrderBy(tc => tc.Id).Take(textChunksFromFile))
-				.ToListAsync();
+			var notebookOverview = await GetNotebookOverview(notebookId);
 
 			string prompt = $@"
 You are an expert curriculum designer and academic tutor. 
@@ -60,9 +57,9 @@ They will be used later to create the content of the modules.
 
 TEXT EXCERPTS FOR ANALYSIS:
 --------------------------------------------------
-{ string.Join("\n", files.SelectMany(f => f.TextChunks.Select(tc => tc.Text))) }
+{ string.Join("\n", notebookOverview) }
 --------------------------------------------------
-This were the first few pages of every document provided as a study material.
+These are representative excerpts taken systematically from throughout the provided study materials.
 If the text is not descriptive enough to build a syllabus, return an empty array [] for the modules.
 ";
 			var syllabusSchema = new Schema
@@ -228,7 +225,7 @@ CONTEXT MATERIAL FOR THE LESSON:
 			await _context.SaveChangesAsync();
 		}
 
-		public async Task<StudyPlanResponse> GetStudyPlanAsync(string userId, int notebookId, int studyPlanId)
+		public async Task<FullStudyPlanResponse> GetStudyPlanAsync(string userId, int notebookId, int studyPlanId)
 		{
 			await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 			var studyPlan = await _context.StudyPlans
@@ -245,7 +242,7 @@ CONTEXT MATERIAL FOR THE LESSON:
 			{
 				throw new Exception("Generate the module first!");
 			}
-			var mappedStudyPlan = _mapper.Map<StudyPlanResponse>(studyPlan);
+			var mappedStudyPlan = _mapper.Map<FullStudyPlanResponse>(studyPlan);
 			return mappedStudyPlan;
 
 		}
@@ -311,6 +308,47 @@ CONTEXT MATERIAL FOR THE LESSON:
 				throw new UnauthorizedAccessException("The module doesn't belong to the notebook!");
 			}
 			return studyPlan;
+		}
+
+		private async Task<List<string>> GetNotebookOverview(int notebookId, 
+			int initialTake=10, int windowSize=3, int maxChunksPerFile=30, int maxFileCount=10)
+		{
+			var textChunksIdQuery = await _context.TextChunks
+				.Where(tc=>tc.UploadedData.NotebookId == notebookId)
+				.Select(tc=> new { tc.Id, tc.UploadedFileId})
+				.ToListAsync();
+
+			var idsToFetch = new List<int>();
+			var groupedChunks = textChunksIdQuery.GroupBy(tc => tc.UploadedFileId).Take(maxFileCount);
+
+			foreach (var group in groupedChunks)
+			{
+				var fileChunks = group.OrderBy(tc => tc.Id).Select(tc => tc.Id).ToList();
+				idsToFetch.AddRange(fileChunks.Take(initialTake));
+
+				int allowedExtraChunks = maxChunksPerFile - initialTake;
+
+				var remainingIds = fileChunks.Skip(initialTake).ToList();
+
+				if (remainingIds.Count > 0 && allowedExtraChunks >= windowSize)
+				{
+					int numberOfWindows = allowedExtraChunks / windowSize;
+					int stepSize = remainingIds.Count / numberOfWindows;
+					stepSize = Math.Max(stepSize, windowSize);
+
+					for (int i = 0; i < remainingIds.Count; i+=stepSize)
+					{
+						idsToFetch.AddRange(remainingIds.Skip(i).Take(windowSize));
+					}
+				}
+			}
+			var text = await _context.TextChunks
+				.Where(tc => idsToFetch.Contains(tc.Id))
+				.OrderBy(tc=>tc.Id)
+				.Select(tc => tc.Text)
+				.ToListAsync();
+			return text;
+
 		}
 	}
 }
