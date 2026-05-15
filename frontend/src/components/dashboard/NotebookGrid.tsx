@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import type { Notebook } from '../../types/notebook';
 
@@ -29,7 +29,6 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
-  const navigate = useNavigate();
 
   // Close menu when clicking anywhere else
   useEffect(() => {

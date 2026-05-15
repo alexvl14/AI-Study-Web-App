@@ -95,7 +95,7 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
       console.error('Failed to open file:', error);
       // Because we requested responseType: 'blob', error.response.data might be a Blob instead of a JSON object!
       if (error.response?.data && error.response.data instanceof Blob) {
-        error.response.data.text().then(text => {
+        error.response.data.text().then((text: string) => {
           alert(`Failed to open file. Details: ${text}`);
         }).catch(() => {
           alert(`Failed to open file. Status: ${error.response?.status}`);

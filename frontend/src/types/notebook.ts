@@ -10,16 +10,20 @@ export interface CreateNotebookRequest {
   description: string;
 }
 
-export enum Sender {
-  User = 0,
-  AI = 1
-}
+export const Sender = {
+  User: 0,
+  AI: 1
+} as const;
 
-export enum Difficulty {
-  Easy = 0,
-  Medium = 1,
-  Hard = 2
-}
+export type Sender = (typeof Sender)[keyof typeof Sender];
+
+export const Difficulty = {
+  Easy: 0,
+  Medium: 1,
+  Hard: 2
+} as const;
+
+export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];
 
 export interface FileResponse {
   id: number;

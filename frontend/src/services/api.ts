@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Use the base URL provided by the user
-export const API_BASE_URL = 'http://localhost:5000/api';
+// Use relative paths so Nginx can proxy them to the backend
+export const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +12,7 @@ const api = axios.create({
 });
 
 export const authApi = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: '', // Empty means use the same origin
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
