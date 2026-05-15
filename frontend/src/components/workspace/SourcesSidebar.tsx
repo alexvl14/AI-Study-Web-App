@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../../services/api';
 import type { FileResponse } from '../../types/notebook';
 
@@ -212,8 +213,8 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
       </aside>
 
       {/* Text Preview Modal */}
-      {previewText && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 lg:p-8 backdrop-blur-sm" onClick={() => setPreviewText(null)}>
+      {previewText && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 lg:p-8 backdrop-blur-sm" onClick={() => setPreviewText(null)}>
           <div 
             className="bg-surface w-full max-w-4xl max-h-full rounded-3xl shadow-2xl flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
@@ -233,7 +234,8 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
               </pre>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

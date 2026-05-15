@@ -14,6 +14,34 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
   const [generatingId, setGeneratingId] = useState<number | null>(null);
   const [isGeneratingSyllabus, setIsGeneratingSyllabus] = useState(false);
 
+  const formatTimeSpan = (timeStr?: string) => {
+    if (!timeStr || timeStr === "00:00:00") return "0s";
+    
+    let days = 0;
+    let timePart = timeStr;
+    if (timeStr.includes('.') && timeStr.indexOf('.') < timeStr.indexOf(':')) {
+      const splitByDot = timeStr.split('.');
+      days = parseInt(splitByDot[0]) || 0;
+      timePart = splitByDot[1];
+    }
+    timePart = timePart.split('.')[0];
+    
+    const parts = timePart.split(':');
+    if (parts.length === 3) {
+      const h = parseInt(parts[0]) || 0;
+      const m = parseInt(parts[1]) || 0;
+      const s = parseInt(parts[2]) || 0;
+      
+      let res = '';
+      if (days > 0) res += `${days}d `;
+      if (h > 0) res += `${h}h `;
+      if (m > 0 || days > 0 || h > 0) res += `${m}m `;
+      res += `${s}s`;
+      return res.trim();
+    }
+    return timeStr;
+  };
+
   // Sort study plans by sequence order
   const sortedPlans = [...studyPlans].sort((a, b) => a.sequenceOrder - b.sequenceOrder);
   
@@ -110,21 +138,29 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
 
             return isGenerated ? (
               <div key={plan.id} className="relative flex gap-6 group cursor-pointer" onClick={() => onOpenTopic(plan)}>
-                <div className="z-10 w-5 h-5 rounded-full bg-primary ring-4 ring-primary/20 flex items-center justify-center shrink-0 mt-1">
+                <div className={`z-10 w-5 h-5 rounded-full ring-4 flex items-center justify-center shrink-0 mt-1 ${plan.isFinished ? 'bg-green-500 ring-green-500/20' : 'bg-primary ring-primary/20'}`}>
                   <div className="w-2 h-2 rounded-full bg-white"></div>
                 </div>
-                <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-primary/20 flex-1 hover:border-primary/50 transition-colors">
+                <div className={`bg-surface-container-lowest p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border flex-1 transition-colors ${plan.isFinished ? 'border-green-500/30 hover:border-green-500/60' : 'border-primary/20 hover:border-primary/50'}`}>
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">Module {plan.sequenceOrder}</span>
-                    <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Ready</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-tighter ${plan.isFinished ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>Module {plan.sequenceOrder}</span>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${plan.isFinished ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30' : 'text-primary bg-primary/10'}`}>
+                      {plan.isFinished ? 'Completed' : 'Ready'}
+                    </span>
                   </div>
                   <h3 className="font-bold text-sm text-on-surface mb-1">{plan.title}</h3>
                   <p className="text-xs text-on-surface-variant mb-4 line-clamp-2">{plan.description}</p>
                   <div className="w-full bg-surface-container-low h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-primary h-full w-[0%]"></div>
+                    <div className={`h-full transition-all ${plan.isFinished ? 'bg-green-500 w-[100%]' : 'bg-primary w-[0%]'}`}></div>
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-[9px] font-bold text-on-surface-variant">Not started</span>
+                    <span className="text-[9px] font-bold text-on-surface-variant">
+                      {plan.isFinished 
+                        ? `Finished in ${formatTimeSpan(plan.timeItTookToFinish)}`
+                        : (plan.timeItTookToFinish && plan.timeItTookToFinish !== "00:00:00")
+                          ? `In Progress: ${formatTimeSpan(plan.timeItTookToFinish)} spent`
+                          : 'Not started'}
+                    </span>
                   </div>
                 </div>
               </div>

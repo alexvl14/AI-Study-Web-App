@@ -64,6 +64,7 @@ export default function Workspace() {
         <ChatInterface 
           notebookId={notebookId} 
           chatHistory={notebookDetails?.recentChat || []} 
+          onRefresh={fetchNotebookDetails} 
           onMessageAdded={(newMsg) => {
             setNotebookDetails(prev => {
               if (!prev) return prev;

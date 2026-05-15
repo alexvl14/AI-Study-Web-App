@@ -18,6 +18,89 @@ export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [localSeconds, setLocalSeconds] = useState<number>(0);
+
+  const parseTimeSpanToSeconds = (timeStr?: string) => {
+    if (!timeStr || timeStr === "00:00:00") return 0;
+    
+    let days = 0;
+    let timePart = timeStr;
+    if (timeStr.includes('.') && timeStr.indexOf('.') < timeStr.indexOf(':')) {
+      const splitByDot = timeStr.split('.');
+      days = parseInt(splitByDot[0]) || 0;
+      timePart = splitByDot[1];
+    }
+    timePart = timePart.split('.')[0];
+    
+    const parts = timePart.split(':');
+    if (parts.length === 3) {
+      const h = parseInt(parts[0]) || 0;
+      const m = parseInt(parts[1]) || 0;
+      const s = parseInt(parts[2]) || 0;
+      return (days * 86400) + (h * 3600) + (m * 60) + s;
+    }
+    return 0;
+  };
+
+  const formatSeconds = (totalSeconds: number) => {
+    if (totalSeconds === 0) return "0s";
+    const days = Math.floor(totalSeconds / 86400);
+    const h = Math.floor((totalSeconds % 86400) / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    
+    let res = '';
+    if (days > 0) res += `${days}d `;
+    if (h > 0) res += `${h}h `;
+    if (m > 0 || days > 0 || h > 0) res += `${m}m `;
+    res += `${s}s`;
+    return res.trim();
+  };
+
+  // Visual timer effect
+  useEffect(() => {
+    if (!plan || plan.isFinished) return;
+    
+    const intervalId = setInterval(() => {
+      setLocalSeconds(prev => prev + 1);
+    }, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [plan?.isFinished, plan !== null]);
+
+  // Timer effect to track and save time spent
+  useEffect(() => {
+    if (!plan || plan.isFinished) return;
+    
+    let lastSavedTime = Date.now();
+    let isUnmounted = false;
+    
+    const saveTime = async (isFinalSave = false) => {
+      if (isUnmounted && !isFinalSave) return;
+      const now = Date.now();
+      const secondsSpent = Math.floor((now - lastSavedTime) / 1000);
+      
+      if (secondsSpent >= 1) {
+        try {
+          const response = await api.post(`/notebooks/${notebookId}/study-plans/${planId}/timer?secondsSpent=${secondsSpent}`);
+          lastSavedTime = now;
+          if (response.data && response.data.time && !isUnmounted) {
+            setPlan(prev => prev ? { ...prev, timeItTookToFinish: response.data.time } : prev);
+          }
+        } catch (err) {
+          console.error("Failed to save time spent:", err);
+        }
+      }
+    };
+
+    const intervalId = setInterval(() => saveTime(false), 60000);
+
+    return () => {
+      isUnmounted = true;
+      clearInterval(intervalId);
+      saveTime(true); // Save any remaining time when component unmounts
+    };
+  }, [notebookId, planId, plan?.isFinished]);
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -29,6 +112,9 @@ export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh
         const response = await api.get(`/notebooks/${notebookId}/study-plans/${planId}`);
         const data = response.data;
         setPlan(data);
+        if (data.timeItTookToFinish) {
+          setLocalSeconds(parseTimeSpanToSeconds(data.timeItTookToFinish));
+        }
         
         // If quiz is already completed, set the selected answers
         if (data.isQuizCompleted && data.questions) {
@@ -137,8 +223,21 @@ export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-6 border-b border-outline-variant/10 shrink-0">
-          <div>
-            <span className="text-[10px] font-bold text-primary uppercase tracking-tighter block mb-1">Module {plan.sequenceOrder}</span>
+          <div className="flex-1 pr-4">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">Module {plan.sequenceOrder}</span>
+              {plan.isFinished ? (
+                <span className="text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">done_all</span>
+                  Completed in {formatSeconds(localSeconds)}
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">schedule</span>
+                  In Progress ({formatSeconds(localSeconds)})
+                </span>
+              )}
+            </div>
             <h2 className="text-xl font-bold text-on-surface line-clamp-1" title={plan.title}>{plan.title}</h2>
           </div>
           <button 

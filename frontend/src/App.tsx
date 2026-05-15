@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import Workspace from './pages/Workspace';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Landing from './pages/Landing';
 import TopNavBar from './components/layout/TopNavBar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -25,7 +26,7 @@ function AppContent() {
       {!isAuthPage && <TopNavBar />}
       <div className="flex flex-1 relative overflow-hidden">
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

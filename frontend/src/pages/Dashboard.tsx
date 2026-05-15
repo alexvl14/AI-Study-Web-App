@@ -80,9 +80,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <button className="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40">
-        <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>chat_spark</span>
-      </button>
     </main>
   );
 }

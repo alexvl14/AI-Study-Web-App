@@ -9,5 +9,6 @@ namespace backend_dotnet.Dtos.StudyPlans
 		public int DifficultyLevel { get; set; }
 		public int IsGenerated { get; set; }
 		public bool IsFinished { get; set; }
+		public TimeSpan TimeItTookToFinish { get; set; } = TimeSpan.Zero;
 	}
 }

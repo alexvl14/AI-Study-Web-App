@@ -9,14 +9,19 @@ interface ChatInterfaceProps {
   chatHistory: ChatHistoryResponse[];
   onMessageAdded: (msg: ChatHistoryResponse) => void;
   onOlderMessagesLoaded?: (msgs: ChatHistoryResponse[]) => void;
+  onRefresh?: () => void;
 }
 
-export default function ChatInterface({ notebookId, chatHistory, onMessageAdded, onOlderMessagesLoaded }: ChatInterfaceProps) {
+export default function ChatInterface({ notebookId, chatHistory, onMessageAdded, onOlderMessagesLoaded, onRefresh }: ChatInterfaceProps) {
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const previousScrollHeightRef = useRef<number>(0);
@@ -31,6 +36,17 @@ export default function ChatInterface({ notebookId, chatHistory, onMessageAdded,
       endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatHistory.length, isSending]);
+
+  // Click outside to close attachment menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Adjust scroll position when older messages are loaded
   useLayoutEffect(() => {
@@ -98,6 +114,39 @@ export default function ChatInterface({ notebookId, chatHistory, onMessageAdded,
       alert(`Failed to send message. Details: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !notebookId) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size cannot exceed 10MB");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setIsUploading(true);
+      await api.post(`/notebooks/${notebookId}/files`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error: any) {
+      console.error('Upload failed:', error);
+      alert(error.response?.data || "Failed to upload file");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -190,9 +239,42 @@ export default function ChatInterface({ notebookId, chatHistory, onMessageAdded,
       {/* Floating Chat Input */}
       <div className="absolute bottom-24 lg:bottom-6 left-0 right-0 px-4 lg:px-8">
         <div className="max-w-3xl mx-auto bg-white border border-outline-variant/20 shadow-xl shadow-on-surface/5 rounded-2xl p-2 flex items-center gap-2 group focus-within:ring-4 focus-within:ring-primary/5 transition-all">
-          <button className="p-2 hover:bg-surface-container rounded-xl text-on-surface-variant transition-colors flex items-center justify-center">
-            <span className="material-symbols-outlined">add</span>
-          </button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+            className="hidden" 
+            accept=".pdf,.doc,.docx,.txt,.csv"
+          />
+          <div className="relative" ref={menuRef}>
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              disabled={isUploading || isSending}
+              title="Add attachment"
+              className={`p-2 rounded-xl text-on-surface-variant transition-colors flex items-center justify-center disabled:opacity-50 ${isMenuOpen ? 'bg-surface-container' : 'hover:bg-surface-container'}`}
+            >
+              {isUploading ? (
+                <span className="material-symbols-outlined animate-spin">progress_activity</span>
+              ) : (
+                <span className="material-symbols-outlined">add</span>
+              )}
+            </button>
+            
+            {isMenuOpen && (
+              <div className="absolute bottom-full left-0 mb-3 w-48 bg-surface-container-lowest rounded-2xl shadow-xl shadow-on-surface/5 border border-outline-variant/20 py-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <button 
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-surface-container transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[20px] text-primary">upload_file</span>
+                  Add Source
+                </button>
+              </div>
+            )}
+          </div>
           <textarea 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -203,9 +285,6 @@ export default function ChatInterface({ notebookId, chatHistory, onMessageAdded,
             rows={1}
           ></textarea>
           <div className="flex items-center gap-1 pr-1">
-            <button className="p-2 hover:bg-surface-container rounded-xl text-on-surface-variant transition-colors flex items-center justify-center">
-              <span className="material-symbols-outlined">mic</span>
-            </button>
             <button 
               onClick={handleSendMessage}
               disabled={isSending || !message.trim()}

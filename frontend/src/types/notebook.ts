@@ -50,6 +50,7 @@ export interface StudyPlanResponse {
   content?: string;
   isQuizCompleted?: boolean;
   isFinished?: boolean;
+  timeItTookToFinish?: string;
   questions?: QuizQuestionResponse[];
 }
 
