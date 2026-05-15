@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# StudyLM Frontend 🎨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The user interface for StudyLM, built with React and TypeScript. It features a modern, responsive design with glassmorphic elements and high-fidelity 3D animations.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Premium Landing Page:** A high-converting entry point with 3D-animated background elements and interactive feature grids.
+- **Dynamic Dashboard:** Manage your study notebooks with a clean, organized bento-style grid.
+- **Integrated Workspace:** A three-column workspace for document management, RAG-powered AI chat, and structured study plans.
+- **Modern Auth Flow:** Secure and beautiful login and registration interfaces.
+- **Responsive Design:** Fully optimized for all screen sizes, from mobile to ultra-wide monitors.
 
-## React Compiler
+## 🖼️ Gallery
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<div align="center">
+  <h3>Hero Experience</h3>
+  <img src="../assets/landing.png" alt="Landing Page" width="800" />
+  
+  <h3>User Dashboard</h3>
+  <img src="../assets/dashboard.png" alt="Dashboard" width="800" />
+  
+  <h3>Notebook Management</h3>
+  <img src="../assets/notebook.png" alt="Notebook" width="800" />
+  
+  <h3>Study Workspace</h3>
+  <img src="../assets/module.png" alt="Module Workspace" width="800" />
+</div>
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Framework:** React 19 (Vite)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS (with custom glassmorphism utilities)
+- **Icons:** Material Symbols (Outlined)
+- **Routing:** React Router v7
+- **HTTP Client:** Axios (with centralized interceptors)
+- **Animations:** Custom CSS 3D Keyframes & Tailwind Transitions
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🚀 Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
+- Node.js (v18+)
+- npm (v9+)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. Configure the API URL:
+   Ensure `src/services/api.ts` points to your backend:
+   ```typescript
+   export const API_BASE_URL = 'http://localhost:5000/api';
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+The app will be available at `http://localhost:3000`.
+
+## 📂 Project Structure
+
+- `src/components/`: Reusable UI components (Layout, Dashboard, Workspace).
+- `src/pages/`: Main page views (Landing, Dashboard, Workspace, Auth).
+- `src/context/`: State management (AuthContext).
+- `src/services/`: API client and service definitions.
+- `src/utils/`: Helper functions and parsers.
+- `src/index.css`: Global styles and custom animation keyframes.
