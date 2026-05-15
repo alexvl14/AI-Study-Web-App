@@ -24,7 +24,7 @@ The application is built using a modern, multi-language microservice architectur
 
 *   **Frontend Client:** React (Vite), TypeScript, Tailwind CSS, React Router
 *   **Core Backend API:** ASP.NET Core Entity Framework handling secure authentication, database operations, and application business logic.
-*   **AI Processing Service:** Python (FastAPI/Flask) handling heavy lifting such as PDF parsing, OCR text extraction, and the RAG (Retrieval-Augmented Generation) pipeline.
+*   **AI Processing Service:** Python (FastAPI/Flask) handling heavy lifting such as PDF parsing, and the RAG (Retrieval-Augmented Generation) pipeline.
 
 <div align="center">
   <img src="assets/backend.png" alt="Backend Architecture & Documentation" />
@@ -40,17 +40,48 @@ The fastest way to get StudyLM running locally is using Docker Compose. This wil
 
 1. Clone the repository and navigate to the project root.
 2. Ensure you have Docker and Docker Compose installed.
-3. Create a `.env` file in the root directory with the necessary database credentials:
-   ```env
-   POSTGRES_USER=your_user
-   POSTGRES_PASSWORD=your_password
-   POSTGRES_DB=studylm_db
-   ```
+3. Configure the environment variables (see **Configuration** section below).
 4. Run the stack:
    ```bash
    docker compose up --build
    ```
 5. The application will be available at `http://localhost:3000`.
+
+---
+
+### Configuration & API Keys 🔑
+
+Before running the application (either manually or via Docker), you must configure the internal communication keys and your Gemini API key.
+
+1. **.NET Backend (`backend-dotnet/appsettings.json`)**
+   Update your `appsettings.json` to include the shared internal API key and your Gemini key:
+   ```json
+   "ExternalServices": {
+     "Python": {
+       "ServiceUrl": "http://localhost:5001",
+       "ApiKey": "my_super_secret_internal_key_123"
+     },
+     "Gemini": {
+       "ApiKey": "YOUR_GEMINI_API_KEY",
+       "Model": "gemini-2.5-flash-lite"
+     }
+   }
+   ```
+   *(Note: If using Docker, `ServiceUrl` should be `http://backend-python:8000`)*
+
+2. **Python AI Service (`backend-python/.env`)**
+   Create a `.env` file in the `backend-python` directory to match the internal key:
+   ```env
+   API_KEY=my_super_secret_internal_key_123
+   ```
+
+3. **Database Credentials (Docker Only)**
+   If using Docker, create a `.env` file in the **root** directory:
+   ```env
+   POSTGRES_USER=your_user
+   POSTGRES_PASSWORD=your_password
+   POSTGRES_DB=studylm_db
+   ```
 
 ---
 
