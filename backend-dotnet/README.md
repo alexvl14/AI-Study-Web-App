@@ -68,6 +68,13 @@ Context-aware AI assistance.
   - Fetches chat history.
   - Query: `?lastMessageId=int`
 
+## Database Schema
+
+<div align="center">
+  <img src="../assets/database.png" alt="Backend Architecture & Documentation" />
+</div>
+
+
 ## ⚙️ Configuration
 Configure your `appsettings.json`:
 - `ConnectionStrings:DefaultConnection`: PostgreSQL connection string.
