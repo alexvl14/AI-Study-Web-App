@@ -23,7 +23,15 @@ namespace backend_dotnet.Data
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
 			base.OnModelCreating(builder);
-            builder.HasPostgresExtension("vector");
+
+			if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+			{
+				builder.Entity<TextChunk>().Ignore(tc => tc.Embedding);
+			}
+			else
+			{
+				builder.HasPostgresExtension("vector");
+			}
 		}
     }
 }
