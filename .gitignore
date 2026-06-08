@@ -71,7 +71,7 @@ backend-python/.ipynb_checkpoints/
 backend-dotnet.Tests/bin/
 backend-dotnet.Tests/obj/
 
-
+design/
 # Large Machine Learning Models (Optional but recommended)
 # If your .joblib or .onnx files become very large, you shouldn't push them to GitHub.
 # Uncomment the line below if your models get bigger than 50MB.

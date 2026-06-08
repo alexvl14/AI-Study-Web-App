@@ -161,7 +161,7 @@ namespace Tests.Services
 
 		[Fact]
 
-		public async Task UpdatedNotebook_OwnerMismatch_ThrowsUnautorizedAccessException()
+		public async Task UpdatedNotebook_OwnerMismatch_ThrowsUnauthorizedAccessException()
 		{
 			using var context = CreateInMemoryDbContext();
 			await context.Notebooks.AddAsync(
