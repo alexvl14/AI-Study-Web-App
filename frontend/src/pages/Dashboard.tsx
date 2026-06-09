@@ -29,8 +29,8 @@ export default function Dashboard() {
     <div className="flex pt-[72px] min-h-screen">
       <SideNavBar onNewNotebook={() => setCreateKey(k => k + 1)} />
 
-      <main className="flex-1 px-5 md:px-margin-desktop py-12">
-        <div className="max-w-6xl mx-auto">
+      <main className="flex-1 px-6 py-12">
+        <div>
           <header className="mb-12">
             <p className="font-sans text-label-md text-primary uppercase tracking-widest mb-2">
               Active Research

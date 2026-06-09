@@ -114,7 +114,7 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-gutter">
 
         {/* Create New Notebook card */}
         <button
@@ -139,7 +139,7 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
         ))}
 
         {/* Notebook cards */}
-        {!isLoading && notebooks.map((nb) => (
+        {!isLoading && [...notebooks].sort((a, b) => new Date(b.lastOpenedDateTime).getTime() - new Date(a.lastOpenedDateTime).getTime()).map((nb) => (
           <Link
             to={`/workspace/${nb.id}`}
             key={nb.id}

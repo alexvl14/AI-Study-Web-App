@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function TopNavBar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -23,12 +24,12 @@ export default function TopNavBar() {
     : '?';
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-background border-b border-outline shadow-hard">
-      <div className="flex justify-between items-center px-6 md:px-margin-desktop py-4 max-w-max-width mx-auto">
+    <header className="fixed top-0 w-full z-50 bg-background">
+      <div className="flex justify-between items-center px-6 md:px-8 py-4 w-full">
 
         {/* Left: logo + nav */}
         <div className="flex items-center gap-10">
-          <Link to={isAuthenticated ? '/dashboard' : '/'}>
+          <Link to="/">
             <span className="font-serif font-bold text-headline-md text-primary">
               StudyLM
             </span>
@@ -121,7 +122,7 @@ export default function TopNavBar() {
                     </div>
                     <div className="py-1 border-t border-outline-variant">
                       <button
-                        onClick={() => { setIsDropdownOpen(false); logout(); }}
+                        onClick={async () => { setIsDropdownOpen(false); await logout(); navigate('/'); }}
                         className="w-full text-left px-4 py-2.5 font-sans text-sm font-bold text-error hover:bg-error-container flex items-center gap-2 transition-colors"
                       >
                         <span className="material-symbols-outlined text-lg">logout</span>

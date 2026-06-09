@@ -169,13 +169,27 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
                   {isGenerated ? (
                     /* Generated — clickable card */
                     <div
-                      className="bg-white etched-border p-5 shadow-hard-sm hover:shadow-hard transition-all cursor-pointer"
+                      className={`etched-border p-5 transition-all cursor-pointer ${
+                        plan.isFinished
+                          ? 'bg-surface-container-low shadow-hard-sm opacity-75 hover:opacity-100 hover:shadow-hard'
+                          : 'bg-white shadow-hard-sm hover:shadow-hard'
+                      }`}
                       onClick={() => onOpenTopic(plan)}
                     >
-                      <h5 className="font-sans font-bold uppercase text-xs text-primary mb-1">
-                        Phase {plan.sequenceOrder}
-                      </h5>
-                      <h4 className="font-serif text-base text-on-surface">{plan.title}</h4>
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h5 className="font-sans font-bold uppercase text-xs text-primary">
+                          Phase {plan.sequenceOrder}
+                        </h5>
+                        {plan.isFinished && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest font-sans shrink-0">
+                            <span className="material-symbols-outlined text-xs">check</span>
+                            Done
+                          </span>
+                        )}
+                      </div>
+                      <h4 className={`font-serif text-base ${plan.isFinished ? 'text-on-surface-variant line-through decoration-outline' : 'text-on-surface'}`}>
+                        {plan.title}
+                      </h4>
                       <p className="text-xs font-sans mt-2 text-outline line-clamp-2">{plan.description}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <span className="px-2 py-0.5 bg-surface-container-high text-[10px] font-bold uppercase etched-border font-sans">
@@ -205,18 +219,17 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
                       <button
                         onClick={(e) => handleGenerate(e, plan.id)}
                         disabled={generatingId !== null}
-                        className="mt-3 text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1 font-sans disabled:opacity-50"
+                        className="mt-4 w-full bg-white text-on-primary-container etched-border shadow-hard btn-press py-2.5 flex items-center justify-center gap-2 font-sans font-bold text-[11px] uppercase tracking-widest disabled:opacity-50"
                       >
                         {isGeneratingThis ? (
                           <>
-                            <span className="material-symbols-outlined text-xs animate-spin">progress_activity</span>
+                            <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
                             Generating...
                           </>
                         ) : (
                           <>
-                            <span className="material-symbols-outlined text-xs">magic_button</span>
+                            <span className="material-symbols-outlined text-sm">magic_button</span>
                             Generate Lesson
-                            <span className="material-symbols-outlined text-xs">arrow_forward</span>
                           </>
                         )}
                       </button>

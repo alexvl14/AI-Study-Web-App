@@ -15,16 +15,10 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
     try {
-      // Identity API login endpoint
       await authApi.post('/login?useCookies=true', { email, password });
-      
-      // Get user info to update context
       const userInfo = await authApi.get('/manage/info');
       login(userInfo.data);
-      
-      // Redirect to dashboard
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to log in. Please check your credentials.');
@@ -34,106 +28,122 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-surface-container-lowest font-body">
-      {/* Left side - Decorative/Brand */}
-      <div className="hidden lg:flex w-1/2 relative bg-surface-container-lowest overflow-hidden flex-col justify-between p-12">
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-            <span className="material-symbols-outlined text-white text-xl">school</span>
-          </div>
-          <span className="font-extrabold text-2xl tracking-tight text-on-surface">StudyLM</span>
-        </div>
+    <div className="min-h-screen flex w-full bg-background">
 
-        <div className="relative z-10 max-w-md">
-          <h1 className="text-5xl font-extrabold tracking-tight text-on-surface leading-tight mb-6">
-            Synthesize your <br/>
-            <span className="text-primary bg-primary/10 px-2 rounded-lg">knowledge</span>
+      {/* Left — Brand panel */}
+      <div className="hidden lg:flex w-1/2 bg-surface-container-low relative flex-col justify-between p-16 overflow-hidden">
+        <div className="absolute inset-0 crosshatch-bg opacity-5" />
+
+        <Link to="/">
+          <span className="font-serif font-bold text-headline-md text-primary relative z-10">StudyLM</span>
+        </Link>
+
+        <div className="relative z-10 max-w-sm">
+          <div className="w-10 h-px bg-on-surface mb-8" />
+          <h1 className="font-serif text-display-lg-mobile text-on-surface leading-tight mb-6">
+            Welcome<br />back, scholar.
           </h1>
-          <p className="text-lg text-on-surface-variant leading-relaxed">
-            Upload your documents, interact with the AI, and let it generate a personalized study syllabus for you.
+          <p className="font-sans text-body-lg text-on-surface-variant leading-relaxed mb-10">
+            Your documents, your AI assistant, your personalized study roadmap — all in one place.
           </p>
+          <div className="flex flex-col gap-3">
+            {['AI-powered document chat', 'Personalized study syllabus', 'Adaptive quiz generation'].map((f) => (
+              <div key={f} className="flex items-center gap-3">
+                <div className="w-4 h-4 etched-border bg-primary-container flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-on-primary-container" style={{ fontSize: '10px' }}>check</span>
+                </div>
+                <span className="font-sans text-sm text-on-surface-variant">{f}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Abstract glowing background shapes */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-tertiary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
-        <div className="absolute top-1/2 right-1/3 w-72 h-72 bg-secondary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+        <div className="relative z-10">
+          <div className="border-t border-dashed border-outline-variant mb-4" />
+          <p className="font-sans text-xs text-outline uppercase tracking-widest">Powered by StudyLM Engine</p>
+        </div>
       </div>
 
-      {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative z-10">
-        <div className="w-full max-w-md bg-white lg:bg-transparent rounded-3xl p-8 lg:p-0 shadow-2xl lg:shadow-none shadow-on-surface/5">
-          <div className="lg:hidden flex items-center gap-3 mb-10 justify-center">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-              <span className="material-symbols-outlined text-white text-xl">school</span>
-            </div>
-            <span className="font-extrabold text-2xl tracking-tight text-on-surface">StudyLM</span>
-          </div>
+      {/* Right — Form */}
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 relative">
+        <div className="lg:hidden mb-10">
+          <Link to="/"><span className="font-serif font-bold text-headline-md text-primary">StudyLM</span></Link>
+        </div>
 
-          <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-extrabold text-on-surface mb-2">Welcome back</h2>
-            <p className="text-on-surface-variant font-medium">Please enter your details to sign in.</p>
-          </div>
+        <div className="w-full max-w-md">
+          <div className="bg-white etched-border shadow-hard-lg p-10">
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-primary">Account Access</span>
+            <h2 className="font-serif text-headline-lg text-on-surface mt-2 mb-8">Sign In</h2>
 
-          {error && (
-            <div className="mb-6 p-4 rounded-xl bg-error-container text-on-error-container text-sm font-semibold flex items-center gap-3">
-              <span className="material-symbols-outlined">error</span>
-              {error}
-            </div>
-          )}
+            {error && (
+              <div className="mb-6 p-4 bg-error-container etched-border flex items-start gap-3">
+                <span className="material-symbols-outlined text-on-error-container text-lg shrink-0">error</span>
+                <p className="font-sans text-sm font-semibold text-on-error-container">{error}</p>
+              </div>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-on-surface mb-2">Email address</label>
-              <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/50 group-focus-within:text-primary transition-colors">mail</span>
-                <input 
-                  type="email" 
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block font-sans font-bold text-xs uppercase tracking-widest text-on-surface-variant mb-2">
+                  Email address
+                </label>
+                <input
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 rounded-xl py-3.5 pl-12 pr-4 text-on-surface outline-none transition-all font-medium"
-                  placeholder="Enter your email"
+                  className="w-full etched-border bg-surface-container-lowest py-3 px-4 font-sans text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:border-primary transition-colors"
+                  placeholder="your@email.com"
                   required
                 />
               </div>
-            </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-bold text-on-surface">Password</label>
-                <a href="#" className="text-sm font-bold text-primary hover:text-primary-container transition-colors">Forgot password?</a>
-              </div>
-              <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/50 group-focus-within:text-primary transition-colors">lock</span>
-                <input 
-                  type="password" 
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="font-sans font-bold text-xs uppercase tracking-widest text-on-surface-variant">
+                    Password
+                  </label>
+                  <a href="#" className="font-sans text-xs text-primary hover:underline transition-colors">
+                    Forgot password?
+                  </a>
+                </div>
+                <input
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 rounded-xl py-3.5 pl-12 pr-4 text-on-surface outline-none transition-all font-medium"
+                  className="w-full etched-border bg-surface-container-lowest py-3 px-4 font-sans text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:border-primary transition-colors"
                   placeholder="••••••••"
                   required
                 />
               </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-primary-container text-on-primary-container etched-border shadow-hard btn-press py-3.5 font-sans font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-outline-variant text-center">
+              <p className="font-sans text-sm text-on-surface-variant">
+                Don't have an account?{' '}
+                <Link to="/register" className="font-bold text-primary hover:underline">
+                  Create one free
+                </Link>
+              </p>
             </div>
-
-            <button 
-              type="submit" 
-              disabled={isLoading}
-              className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-container hover:shadow-primary/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:active:scale-100"
-            >
-              {isLoading ? (
-                <span className="material-symbols-outlined animate-spin">progress_activity</span>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
-
-          <p className="mt-8 text-center text-on-surface-variant font-medium text-sm">
-            Don't have an account? <Link to="/register" className="font-bold text-primary hover:text-primary-container transition-colors ml-1">Sign up for free</Link>
-          </p>
+          </div>
         </div>
       </div>
+
     </div>
   );
 }

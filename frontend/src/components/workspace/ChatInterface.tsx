@@ -156,7 +156,7 @@ export default function ChatInterface({ notebookId, chatHistory, filesCount, onM
       <div
         ref={chatContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-6 space-y-8 flex flex-col"
+        className="flex-1 overflow-y-auto p-6 space-y-2 flex flex-col"
       >
         {isLoadingMore && (
           <div className="flex justify-center py-2 shrink-0">
