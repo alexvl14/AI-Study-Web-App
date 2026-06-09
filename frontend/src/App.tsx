@@ -24,7 +24,7 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-on-surface">
       {!isAuthPage && <TopNavBar />}
-      <div className="flex flex-1 relative overflow-hidden">
+      <div className="flex flex-1 relative">
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />

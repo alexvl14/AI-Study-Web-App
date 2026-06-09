@@ -6,6 +6,17 @@
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f5f3f3;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #6d7a76;
+  }
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -13,52 +24,54 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #e0e3e5;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #c3c6d7;
-  }
-  
+
   @keyframes turnPage {
-    0% {
-      transform: perspective(2000px) rotateY(0deg);
-      z-index: 2;
-    }
-    50% {
-      transform: perspective(2000px) rotateY(-90deg) skewY(-5deg);
-      z-index: 2;
-    }
-    50.01% {
-      z-index: 1;
-    }
-    100% {
-      transform: perspective(2000px) rotateY(-180deg);
-      z-index: 1;
-    }
+    0%     { transform: perspective(2000px) rotateY(0deg);    z-index: 2; }
+    50%    { transform: perspective(2000px) rotateY(-90deg) skewY(-5deg); z-index: 2; }
+    50.01% { z-index: 1; }
+    100%   { transform: perspective(2000px) rotateY(-180deg); z-index: 1; }
   }
 
   @keyframes flipSvgPage {
-    0% {
-      transform: perspective(2000px) rotateY(0deg);
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      transform: perspective(2000px) rotateY(-180deg);
-      opacity: 0;
-    }
+    0%   { transform: perspective(2000px) rotateY(0deg);    opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: perspective(2000px) rotateY(-180deg); opacity: 0; }
+  }
+
+  @keyframes draw {
+    to { stroke-dashoffset: 0; }
+  }
+}
+
+@layer utilities {
+  .etched-border {
+    border: 1px solid #1b1c1c;
+  }
+
+  .crosshatch-bg {
+    background-image: radial-gradient(#1b1c1c 0.5px, transparent 0.5px);
+    background-size: 10px 10px;
+  }
+
+  .dashed-line {
+    background-image: linear-gradient(to bottom, #1b1c1c 50%, rgba(255, 255, 255, 0) 0%);
+    background-position: left;
+    background-size: 1px 8px;
+    background-repeat: repeat-y;
+  }
+
+  .hand-drawn-path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw 3s forwards ease-in-out;
+  }
+}
+
+@layer components {
+  /* :active state can't be expressed as a Tailwind utility, so it lives here */
+  .btn-press:active {
+    box-shadow: none;
+    transform: translate(2px, 2px);
   }
 }
