@@ -1,7 +1,6 @@
 using AutoMapper;
 using backend_dotnet.Data;
 using backend_dotnet.Mappings;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using backend_dotnet.Models;
 using backend_dotnet.Services;
@@ -9,11 +8,11 @@ using Moq;
 using FluentAssertions;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Data.Sqlite;
+using Test.Services;
 namespace Tests.Services
 {
 
-    public class FileServiceTests
+    public class FileServiceTests : TestBase
     {
         private readonly IMapper _mapper;
         private readonly Mock<IDocumentParserService> _mockParser;
@@ -30,19 +29,7 @@ namespace Tests.Services
             _mockParser = new Mock<IDocumentParserService>();
             _mockEmbedding = new Mock<IEmbeddingService>();
         }
-
-        private ApplicationDbContext CreateInMemoryDbContext()
-        {
-            var connection = new SqliteConnection("DataSource=:memory:;Foreign Keys=False");
-            connection.Open();
-
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlite(connection)
-                .Options;
-            var context = new ApplicationDbContext(options);
-            context.Database.EnsureCreated();
-            return context;
-        }
+ 
         private FileService CreateService(ApplicationDbContext context)
             =>new FileService(context, _mapper, _mockParser.Object, _mockEmbedding.Object);
 
@@ -126,7 +113,7 @@ namespace Tests.Services
         {
             using var context = CreateInMemoryDbContext();
 
-            int notebookId=999;            
+            int notebookId=10;            
    
             await context.Notebooks.AddAsync(new Notebook{Id=notebookId, UserId="user_a", Title="test"});
             await context.SaveChangesAsync(); 

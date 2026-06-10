@@ -43,7 +43,7 @@ namespace backend_dotnet.Services
 		{
 			var files = await _context.UploadedFiles
 				.AsNoTracking()
-				.Where(f => f.Notebook.UserId == userId && f.NotebookId == notebookId)
+				.Where(f => f.Notebook!.UserId == userId && f.NotebookId == notebookId)
 				.ToListAsync();
 
 			return _mapper.Map<ICollection<GetFilesForNotebookResponse>>(files);

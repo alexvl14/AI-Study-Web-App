@@ -3,17 +3,15 @@ using backend_dotnet.Data;
 using backend_dotnet.Mappings;
 using backend_dotnet.Services;
 using backend_dotnet.Services.Interfaces;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using backend_dotnet.Models;
-using backend_dotnet.Dtos.Chats;
 using FluentAssertions;
+using Test.Services;
 namespace Tests.Services
 {
     
-    public class ChatServiceTests
+    public class ChatServiceTests : TestBase
     {
         
         private readonly IMapper _mapper;
@@ -30,18 +28,6 @@ namespace Tests.Services
             _mockEmbedding = new Mock<IEmbeddingService>();
             _mockLLMConnect = new Mock<ILLMConnectService>();
         }   
-
-        private ApplicationDbContext CreateInMemoryDbContext()
-        {
-            var connection = new SqliteConnection("DataSource=:memory:;Foreign Keys=False");
-            connection.Open();
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlite(connection)
-                .Options;
-            var context = new ApplicationDbContext(options);
-            context.Database.EnsureCreated();
-            return context;
-        }
 
         private ChatService CreateService(ApplicationDbContext context)
             =>new ChatService(context, _mockEmbedding.Object, _mockLLMConnect.Object, _mapper);
