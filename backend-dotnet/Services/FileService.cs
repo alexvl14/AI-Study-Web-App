@@ -12,16 +12,15 @@ namespace backend_dotnet.Services
 	{
 		private readonly ApplicationDbContext _context;
 		private readonly IMapper _mapper;
-		private readonly IHttpClientFactory _httpClientFactory;
+
 		private readonly IDocumentParserService _documentParser;
 		private readonly IEmbeddingService _embeddingService;
 		public FileService(ApplicationDbContext context, 
-			IMapper mapper, IHttpClientFactory httpClientFactory, 
+			IMapper mapper, 
 			IDocumentParserService documentParser, IEmbeddingService embeddingService)
 		{
 			_context = context;
 			_mapper = mapper;
-			_httpClientFactory = httpClientFactory;
 			_documentParser = documentParser;
 			_embeddingService = embeddingService;
 		}
@@ -120,7 +119,7 @@ namespace backend_dotnet.Services
 			}
 			if(file.Notebook?.UserId != userId)
 			{
-				throw new UnauthorizedAccessException("You do not own this file.");
+				throw new UnauthorizedAccessException("Owner mismatch");
 			}
 			return file;
 		}
