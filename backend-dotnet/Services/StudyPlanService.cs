@@ -11,16 +11,18 @@ namespace backend_dotnet.Services
 	public class StudyPlanService : IStudyPlanService
 	{
 		private readonly ApplicationDbContext _context;
-
 		private readonly IMapper _mapper;
 		private readonly IStudyPlanGeneratorRegistry _registry;
+		private readonly IQuizAssessor _quizAssesor; //general plans
 		public StudyPlanService(ApplicationDbContext context, 
 			IMapper mapper,
-			IStudyPlanGeneratorRegistry registry)
+			IStudyPlanGeneratorRegistry registry,
+			IQuizAssessor quizAssessor)
 		{
 			_context = context;
 			_mapper = mapper;
 			_registry = registry;
+			_quizAssesor = quizAssessor;
 		}
 
 		public async Task<ICollection<GetStudyPlanResponse>> GenerateSyllabusAsync(string userId, int notebookId)
@@ -99,27 +101,7 @@ namespace backend_dotnet.Services
 			{
 				throw new KeyNotFoundException("Module not found for this notebook!");
 			}
-			int score = 0;
-			foreach(KeyValuePair<int,int> answer in request.answers)
-			{
-				var question = studyPlan.Questions.FirstOrDefault(q => q.Id == answer.Key);
-				if(question == null)
-				{
-					throw new KeyNotFoundException("Invalid question id!");
-				}
-				var selectedOption = question.Options.FirstOrDefault(o=>o.Id == answer.Value);
-				if(selectedOption != null)
-				{
-					selectedOption.IsSelectedByUser = true;
-					if (selectedOption.IsCorrect)
-					{
-						score++;
-					}
-				}
-			}
-			studyPlan.IsQuizCompleted = true;
-			studyPlan.QuizResults = score;
-			studyPlan.IsFinished = true;
+			int score = _quizAssesor.Assess(studyPlan, request);
 			await _context.SaveChangesAsync();
 			return score;
 		}
