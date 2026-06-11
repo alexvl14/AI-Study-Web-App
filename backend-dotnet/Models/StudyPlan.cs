@@ -26,6 +26,9 @@ namespace backend_dotnet.Models
 		public bool IsQuizCompleted { get; set; } = false;
 		public bool IsFinished { get; set; } = false;
 
+		public string? ContentPayload { get; set; }
+		public string? UserState { get; set; }
+
 		public Notebook Notebook { get; set; } = null!;
 		public ICollection<QuizQuestion> Questions { get; set; } = new List<QuizQuestion>();
 	}

@@ -74,6 +74,7 @@ backend-dotnet.Tests/obj/
 design/
 CLAUDE.md
 .claude/
+docs/
 # Large Machine Learning Models (Optional but recommended)
 # If your .joblib or .onnx files become very large, you shouldn't push them to GitHub.
 # Uncomment the line below if your models get bigger than 50MB.
