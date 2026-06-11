@@ -15,6 +15,7 @@ namespace backend_dotnet.Data
         public DbSet<ChatHistory> ChatHistories { get; set; }
 
         public DbSet<TextChunk> TextChunks { get; set; }
+        public DbSet<ExerciseSubmission> ExerciseSubmissions {get; set;}
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
