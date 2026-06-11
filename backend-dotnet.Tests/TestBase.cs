@@ -2,7 +2,7 @@ using backend_dotnet.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
-namespace Test.Services
+namespace Tests.Services
 {
     
     public abstract class TestBase

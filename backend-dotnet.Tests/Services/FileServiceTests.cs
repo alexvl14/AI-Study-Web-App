@@ -8,7 +8,6 @@ using Moq;
 using FluentAssertions;
 using backend_dotnet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Test.Services;
 namespace Tests.Services
 {
 
@@ -61,6 +60,8 @@ namespace Tests.Services
             
             context.UploadedFiles.Find(fileId).Should().BeNull();
             File.Exists(filePath).Should().BeFalse();
+
+            Directory.Delete(Path.GetDirectoryName(filePath)!);
         }
         [Fact]
         public async Task DeleteFileFromNotebook_FileExistsUserMismatch_ThrowsUnauthorizedAcessException()
@@ -104,7 +105,7 @@ namespace Tests.Services
             var result = await service.GetFilesForNotebook("user_a", 1);
 
             result.Should().NotBeNull();
-            result.Count.Should().Be(2);
+            result.Should().HaveCount(2);
         }
 
         [Fact]

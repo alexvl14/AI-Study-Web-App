@@ -28,4 +28,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="TestFiles\PdfTest.pdf" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

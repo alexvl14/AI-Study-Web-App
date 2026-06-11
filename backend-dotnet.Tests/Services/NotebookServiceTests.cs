@@ -7,7 +7,6 @@ using backend_dotnet.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using backend_dotnet.Dtos.Notebooks;
-using Test.Services;
 
 namespace Tests.Services
 {
@@ -116,6 +115,7 @@ namespace Tests.Services
 
 			context.Notebooks.Find(notebookId).Should().BeNull();
 			Directory.Exists(directoryPath).Should().BeFalse();
+			
 
 		}
 		[Fact]
