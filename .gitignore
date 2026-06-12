@@ -82,3 +82,7 @@ backend-dotnet.Tests/obj/
 .claude/
 CLAUDE.md
 design/
+docs/
+
+# local dev-only docker overrides
+docker-compose.override.yml
