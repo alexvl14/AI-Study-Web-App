@@ -8,7 +8,7 @@ namespace backend_dotnet.Models
 		public int Id { get; set; }
 		[Required]
 		public string UserId { get; set; } = string.Empty;
-
+		public NotebookType Type { get; set; } = NotebookType.General;
 		[Required]
 		[MaxLength(50)]
 		public string Title { get; set; } = string.Empty;
@@ -21,5 +21,12 @@ namespace backend_dotnet.Models
 		public ICollection<StudyPlan> StudyPlans { get; set; } = new List<StudyPlan>();
 		public ICollection<UploadedData> UploadedFiles { get; set; } = new List<UploadedData>();
 		public ICollection<ChatHistory> ChatMessages { get; set; } = new List<ChatHistory>();
+	}
+
+	public enum NotebookType
+	{
+		General = 0,
+		Math = 1,
+		Science = 2
 	}
 }

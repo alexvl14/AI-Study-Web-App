@@ -10,7 +10,7 @@ using backend_dotnet.Dtos.Notebooks;
 
 namespace Tests.Services
 {
-	public class NotebookServiceTests
+	public class NotebookServiceTests : TestBase
 	{
 
 		private readonly IMapper _mapper;
@@ -22,13 +22,7 @@ namespace Tests.Services
 			}, new LoggerFactory());
 			_mapper = config.CreateMapper();
 		}
-		private ApplicationDbContext CreateInMemoryDbContext()
-		{
-			var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-				.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-				.Options;
-			return new ApplicationDbContext(options);	
-		}
+		
 
 
 		[Fact]
@@ -107,7 +101,7 @@ namespace Tests.Services
 		public async Task DeleteNotebook_NotebookExistsAndOwnedByUser_DeletesFromDbAndCleanUpDirectory()
 		{
 			using var context = CreateInMemoryDbContext();
-			int notebookId = 999;
+			int notebookId = 5;
 			await context.Notebooks
 				.AddAsync(new Notebook { Id = notebookId, UserId = "user_a", Title="N1"});
 			await context.SaveChangesAsync();
@@ -121,6 +115,7 @@ namespace Tests.Services
 
 			context.Notebooks.Find(notebookId).Should().BeNull();
 			Directory.Exists(directoryPath).Should().BeFalse();
+			
 
 		}
 		[Fact]

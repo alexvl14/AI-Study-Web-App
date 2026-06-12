@@ -48,6 +48,10 @@ builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
 builder.Services.AddScoped<ILLMConnectService, LLMConnectService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
+//StudyPlanServices
+builder.Services.AddScoped<IStudyPlanGeneratorRegistry, StudyPlanGeneratorRegistry>();
+builder.Services.AddScoped<IStudyPlanGenerator, LessonQuizGenerator>(); // general plans
+builder.Services.AddScoped<IQuizAssessor, QuizAssessor>();//general plans
 
 //Error Handling 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
