@@ -12,7 +12,7 @@ interface SourcesSidebarProps {
 
 export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdded }: SourcesSidebarProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [previewText, setPreviewText] = useState<{title: string, content: string} | null>(null);
+  const [previewText, setPreviewText] = useState<{ title: string; content: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,7 +20,7 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
     if (!file || !notebookId) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("File size cannot exceed 10MB");
+      alert('File size cannot exceed 10MB');
       return;
     }
 
@@ -30,15 +30,9 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
     try {
       setIsUploading(true);
       const response = await api.post(`/notebooks/${notebookId}/files`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-
+      if (fileInputRef.current) fileInputRef.current.value = '';
       if (onFileAdded && response.data) {
         onFileAdded(response.data);
       } else {
@@ -46,7 +40,7 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
       }
     } catch (error: any) {
       console.error('Upload failed:', error);
-      alert(error.response?.data || "Failed to upload file");
+      alert(error.response?.data || 'Failed to upload file');
     } finally {
       setIsUploading(false);
     }
@@ -78,9 +72,8 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
         responseType: 'blob',
       });
       const blob = response.data;
-      
       const fileNameLower = file.fileName.toLowerCase();
-      
+
       if (file.contentType.includes('pdf') || fileNameLower.endsWith('.pdf')) {
         const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
         window.open(url, '_blank');
@@ -88,12 +81,10 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
         const text = await blob.text();
         setPreviewText({ title: file.fileName, content: text });
       } else {
-        // Fallback for other files like docx, csv, etc.
         downloadFile(file.id, file.fileName);
       }
     } catch (error: any) {
       console.error('Failed to open file:', error);
-      // Because we requested responseType: 'blob', error.response.data might be a Blob instead of a JSON object!
       if (error.response?.data && error.response.data instanceof Blob) {
         error.response.data.text().then((text: string) => {
           alert(`Failed to open file. Details: ${text}`);
@@ -115,7 +106,7 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
       onRefresh();
     } catch (error) {
       console.error('Failed to delete file', error);
-      alert("Failed to delete file");
+      alert('Failed to delete file');
     }
   };
 
@@ -125,7 +116,6 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
   };
 
   const getFileIcon = (contentType: string, fileName: string) => {
-    if (!contentType && !fileName) return 'insert_drive_file';
     const lowerName = fileName?.toLowerCase() || '';
     if (contentType?.includes('pdf') || lowerName.endsWith('.pdf')) return 'picture_as_pdf';
     if (contentType?.includes('word') || contentType?.includes('document') || lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) return 'description';
@@ -134,101 +124,121 @@ export default function SourcesSidebar({ notebookId, files, onRefresh, onFileAdd
     return 'insert_drive_file';
   };
 
+  const getTypeLabel = (contentType: string, fileName: string): string => {
+    const lowerName = fileName?.toLowerCase() || '';
+    if (contentType?.includes('pdf') || lowerName.endsWith('.pdf')) return 'PDF';
+    if (contentType?.includes('word') || contentType?.includes('document') || lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) return 'DOCX';
+    if (contentType?.includes('csv') || lowerName.endsWith('.csv')) return 'CSV';
+    if (contentType?.includes('text') || lowerName.endsWith('.txt')) return 'TXT';
+    return 'FILE';
+  };
+
   return (
     <>
-      <aside className="w-full bg-surface-container-low flex flex-col h-full py-8 pb-32 lg:pb-8 overflow-y-auto hide-scrollbar">
-        <div className="px-6 mb-8 mt-2">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-manrope uppercase tracking-widest text-[10px] font-bold text-blue-700 dark:text-blue-400">Sources</span>
-            <span className="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer">info</span>
-          </div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-6">Knowledge Base</h2>
-          
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileUpload} 
-            className="hidden" 
-            accept=".pdf,.doc,.docx,.txt,.csv"
-          />
-          
-          <button 
+      <aside className="w-full bg-surface-container-lowest flex flex-col h-full border-r border-outline-variant">
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 pt-6 pb-4 border-b border-outline-variant shrink-0">
+          <h3 className="font-sans font-bold uppercase tracking-widest text-[11px] text-outline">Sources</h3>
+          <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary rounded-xl py-3 px-4 font-semibold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:hover:scale-100"
+            className="material-symbols-outlined text-primary hover:rotate-90 transition-transform text-[20px]"
           >
-            {isUploading ? (
-              <span className="material-symbols-outlined text-xl animate-spin">progress_activity</span>
-            ) : (
-              <span className="material-symbols-outlined text-xl">upload</span>
-            )}
-            {isUploading ? 'Uploading...' : 'Add New Source'}
+            add_circle
           </button>
         </div>
 
-        <nav className="flex flex-col gap-1 mb-8">
-          <div className="px-6 mb-2 flex justify-between items-center">
-            <p className="font-manrope uppercase tracking-widest text-[10px] font-bold text-on-surface-variant opacity-60">Active Documents</p>
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{files.length}</span>
-          </div>
-          
+        {/* File list */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {files.length === 0 ? (
-            <div className="px-6 py-8 text-center opacity-60 flex flex-col items-center gap-2">
+            <div className="mt-8 flex flex-col items-center gap-2 opacity-40 px-2">
               <span className="material-symbols-outlined text-3xl">upload_file</span>
-              <p className="text-sm font-medium">No sources uploaded yet.</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-center font-sans">No sources yet</p>
             </div>
           ) : (
             files.map(file => (
-              <div 
-                key={file.id} 
+              <div
+                key={file.id}
                 onClick={() => handleFileClick(file)}
-                className="group flex items-center gap-3 text-slate-500 dark:text-slate-400 py-3 px-6 hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-all cursor-pointer"
+                className="p-4 etched-border bg-white shadow-hard-sm hover:shadow-hard transition-all group cursor-pointer"
               >
-                <span className="material-symbols-outlined">{getFileIcon(file.contentType, file.fileName)}</span>
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate text-on-surface group-hover:text-primary transition-colors">{file.fileName}</p>
+                <div className="flex justify-between items-start">
+                  <span className="material-symbols-outlined text-outline text-xl">
+                    {getFileIcon(file.contentType, file.fileName)}
+                  </span>
+                  <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+                    <button
+                      onClick={(e) => handleDownloadClick(e, file)}
+                      className="p-1 hover:text-primary transition-colors"
+                      title="Download"
+                    >
+                      <span className="material-symbols-outlined text-sm">download</span>
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteFile(e, file.id)}
+                      className="p-1 hover:text-error transition-colors"
+                      title="Delete"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="flex opacity-0 group-hover:opacity-100 transition-all">
-                  <button 
-                    onClick={(e) => handleDownloadClick(e, file)}
-                    className="hover:text-primary transition-all p-1"
-                    title="Download file"
-                  >
-                    <span className="material-symbols-outlined text-sm">download</span>
-                  </button>
-                  <button 
-                    onClick={(e) => handleDeleteFile(e, file.id)}
-                    className="hover:text-error transition-all p-1"
-                    title="Delete file"
-                  >
-                    <span className="material-symbols-outlined text-sm">delete</span>
-                  </button>
-                </div>
+                <h4 className="mt-2 font-serif text-sm font-semibold leading-tight line-clamp-2 text-on-surface">
+                  {file.fileName}
+                </h4>
+                <p className="text-xs text-outline-variant mt-1 font-sans">
+                  {getTypeLabel(file.contentType, file.fileName)}
+                </p>
               </div>
             ))
           )}
-        </nav>
+        </div>
 
-
+        {/* Add Source CTA */}
+        <div className="p-4 border-t border-outline-variant shrink-0">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            className="hidden"
+            accept=".pdf,.doc,.docx,.txt,.csv"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="w-full py-2.5 etched-border bg-primary-container text-on-primary-container font-sans font-bold shadow-hard btn-press uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            {isUploading ? (
+              <>
+                <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                Uploading...
+              </>
+            ) : (
+              'Add Source'
+            )}
+          </button>
+        </div>
       </aside>
 
       {/* Text Preview Modal */}
       {previewText && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 lg:p-8 backdrop-blur-sm" onClick={() => setPreviewText(null)}>
-          <div 
-            className="bg-surface w-full max-w-4xl max-h-full rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-on-surface/60 p-4 lg:p-8"
+          onClick={() => setPreviewText(null)}
+        >
+          <div
+            className="bg-surface w-full max-w-4xl max-h-[80vh] etched-border shadow-hard-lg flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest">
-              <h3 className="font-bold text-on-surface truncate pr-4">{previewText.title}</h3>
-              <button 
+            <div className="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-white shrink-0">
+              <h3 className="font-serif font-bold text-on-surface truncate pr-4">{previewText.title}</h3>
+              <button
                 onClick={() => setPreviewText(null)}
-                className="w-8 h-8 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors shrink-0"
+                className="w-8 h-8 etched-border hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors shrink-0"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-900">
+            <div className="flex-1 overflow-y-auto p-6 bg-white">
               <pre className="whitespace-pre-wrap font-sans text-sm text-on-surface leading-relaxed">
                 {previewText.content}
               </pre>

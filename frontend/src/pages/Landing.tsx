@@ -2,216 +2,220 @@ import { Link } from 'react-router-dom';
 
 export default function Landing() {
   return (
-    <div className="w-full min-h-screen bg-background pt-16 overflow-x-hidden selection:bg-primary/20 selection:text-primary relative z-0">
-      {/* Decorative Background Gradients */}
-      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] pointer-events-none -z-10 animate-[pulse_4s_ease-in-out_infinite]"></div>
-      <div className="fixed bottom-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-secondary/20 blur-[120px] pointer-events-none -z-10 animate-[pulse_4s_ease-in-out_infinite]" style={{ animationDelay: '2s' }}></div>
+    <div className="w-full min-h-screen bg-background pt-[72px] overflow-x-hidden relative z-0">
 
-      {/* Decorative Background Book SVG */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[800px] pointer-events-none -z-20 opacity-30 dark:opacity-40 overflow-hidden flex items-start pt-10 justify-center">
-        <svg width="1000" height="600" viewBox="0 0 1000 600" className="text-primary animate-[pulse_6s_ease-in-out_infinite]" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g transform="translate(0, 20)">
-            {/* Book Base / Shadows */}
-            <path d="M 500 500 Q 300 550 100 400 L 100 100 Q 300 250 500 200 Q 700 250 900 100 L 900 400 Q 700 550 500 500 Z" fill="currentColor" opacity="0.05"/>
-            
-            {/* Left Pages Stack */}
-            <path d="M 500 500 Q 300 550 100 400 L 100 420 Q 300 570 500 520 Z" fill="currentColor" opacity="0.2"/>
-            <path d="M 500 520 Q 300 570 100 420 L 100 440 Q 300 590 500 540 Z" fill="currentColor" opacity="0.3"/>
-            
-            {/* Right Pages Stack */}
-            <path d="M 500 500 Q 700 550 900 400 L 900 420 Q 700 570 500 520 Z" fill="currentColor" opacity="0.2"/>
-            <path d="M 500 520 Q 700 570 900 420 L 900 440 Q 700 590 500 540 Z" fill="currentColor" opacity="0.3"/>
-
-            {/* Top Left Page */}
-            <path d="M 500 500 Q 300 550 100 400 L 100 100 Q 300 250 500 200 Z" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"/>
-            
-            {/* Top Right Page */}
-            <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"/>
-            
-            {/* Center Spine */}
-            <path d="M 500 200 L 500 540" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
-            
-            {/* Text lines on Left Page */}
-            <path d="M 450 280 Q 300 320 150 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-            <path d="M 450 330 Q 300 370 150 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-            <path d="M 450 380 Q 300 420 150 320" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-            <path d="M 450 430 Q 300 470 200 380" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-
-            {/* Animated Turning Pages */}
-            <g className="origin-[500px_center]" style={{ transformStyle: 'preserve-3d', animation: 'flipSvgPage 9s linear infinite' }}>
-               <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-               <path d="M 550 280 Q 700 320 850 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-               <path d="M 550 330 Q 700 370 850 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-               <path d="M 550 380 Q 700 420 850 320" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+      {/* Animated book SVG — original paths, raised to opacity-25 for visibility */}
+      <div className="absolute top-[72px] left-1/2 -translate-x-1/2 w-full max-w-7xl h-[800px] pointer-events-none -z-10 opacity-25 overflow-hidden flex items-start pt-10 justify-center">
+          <svg width="1000" height="600" viewBox="0 0 1000 600" className="text-primary animate-[pulse_6s_ease-in-out_infinite]" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(0, 20)">
+              <path d="M 500 500 Q 300 550 100 400 L 100 100 Q 300 250 500 200 Q 700 250 900 100 L 900 400 Q 700 550 500 500 Z" fill="currentColor" opacity="0.05"/>
+              <path d="M 500 500 Q 300 550 100 400 L 100 420 Q 300 570 500 520 Z" fill="currentColor" opacity="0.2"/>
+              <path d="M 500 520 Q 300 570 100 420 L 100 440 Q 300 590 500 540 Z" fill="currentColor" opacity="0.3"/>
+              <path d="M 500 500 Q 700 550 900 400 L 900 420 Q 700 570 500 520 Z" fill="currentColor" opacity="0.2"/>
+              <path d="M 500 520 Q 700 570 900 420 L 900 440 Q 700 590 500 540 Z" fill="currentColor" opacity="0.3"/>
+              <path d="M 500 500 Q 300 550 100 400 L 100 100 Q 300 250 500 200 Z" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"/>
+              <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"/>
+              <path d="M 500 200 L 500 540" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+              <path d="M 450 280 Q 300 320 150 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+              <path d="M 450 330 Q 300 370 150 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+              <path d="M 450 380 Q 300 420 150 320" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+              <path d="M 450 430 Q 300 470 200 380" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+              <g className="origin-[500px_center]" style={{ transformStyle: 'preserve-3d', animation: 'flipSvgPage 9s linear infinite' }}>
+                <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                <path d="M 550 280 Q 700 320 850 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+                <path d="M 550 330 Q 700 370 850 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+                <path d="M 550 380 Q 700 420 850 320" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+              </g>
+              <g className="origin-[500px_center]" style={{ transformStyle: 'preserve-3d', animation: 'flipSvgPage 9s linear infinite', animationDelay: '-3s' }}>
+                <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                <path d="M 550 280 Q 700 320 850 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+                <path d="M 550 330 Q 700 370 850 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+              </g>
+              <g className="origin-[500px_center]" style={{ transformStyle: 'preserve-3d', animation: 'flipSvgPage 9s linear infinite', animationDelay: '-6s' }}>
+                <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                <path d="M 550 280 Q 700 320 850 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+                <path d="M 550 330 Q 700 370 850 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+                <path d="M 550 380 Q 700 420 850 320" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+                <path d="M 550 430 Q 700 470 800 380" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
+              </g>
             </g>
-            <g className="origin-[500px_center]" style={{ transformStyle: 'preserve-3d', animation: 'flipSvgPage 9s linear infinite', animationDelay: '-3s' }}>
-               <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-               <path d="M 550 280 Q 700 320 850 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-               <path d="M 550 330 Q 700 370 850 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-            </g>
-            <g className="origin-[500px_center]" style={{ transformStyle: 'preserve-3d', animation: 'flipSvgPage 9s linear infinite', animationDelay: '-6s' }}>
-               <path d="M 500 500 Q 700 550 900 400 L 900 100 Q 700 250 500 200 Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-               <path d="M 550 280 Q 700 320 850 220" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-               <path d="M 550 330 Q 700 370 850 270" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-               <path d="M 550 380 Q 700 420 850 320" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-               <path d="M 550 430 Q 700 470 800 380" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity="0.5"/>
-            </g>
-          </g>
-          
-          {/* Magic Stars / AI Sparkles */}
-          <path className="animate-[pulse_2s_ease-in-out_infinite]" d="M 300 50 L 310 80 L 340 90 L 310 100 L 300 130 L 290 100 L 260 90 L 290 80 Z" fill="currentColor"/>
-          <path className="animate-[pulse_3s_ease-in-out_infinite]" d="M 700 80 L 705 100 L 725 105 L 705 110 L 700 130 L 695 110 L 675 105 L 695 100 Z" fill="currentColor"/>
-          <path className="animate-[pulse_2.5s_ease-in-out_infinite]" d="M 500 20 L 505 40 L 525 45 L 505 50 L 500 70 L 495 50 L 475 45 L 495 40 Z" fill="currentColor"/>
-        </svg>
+            <path className="animate-[pulse_2s_ease-in-out_infinite]" d="M 300 50 L 310 80 L 340 90 L 310 100 L 300 130 L 290 100 L 260 90 L 290 80 Z" fill="currentColor"/>
+            <path className="animate-[pulse_3s_ease-in-out_infinite]" d="M 700 80 L 705 100 L 725 105 L 705 110 L 700 130 L 695 110 L 675 105 L 695 100 Z" fill="currentColor"/>
+            <path className="animate-[pulse_2.5s_ease-in-out_infinite]" d="M 500 20 L 505 40 L 525 45 L 505 50 L 500 70 L 495 50 L 475 45 L 495 40 Z" fill="currentColor"/>
+          </svg>
       </div>
 
-      {/* Hero Section */}
-      <section className="relative w-full max-w-7xl mx-auto px-6 pt-24 pb-32 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-high/50 backdrop-blur-md border border-outline-variant/30 text-xs font-bold text-on-surface-variant mb-8 shadow-sm">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-          </span>
-          StudyLM is now in public beta
-        </div>
-        
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-on-surface mb-8 max-w-5xl leading-[1.1]">
-          Supercharge your study with <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">AI-driven</span> roadmaps.
-        </h1>
-        
-        <p className="text-lg md:text-xl text-on-surface-variant mb-12 max-w-2xl leading-relaxed">
-          Upload your PDFs and let our intelligent engine generate personalized study plans, quizzes, and instant context. Never read a textbook the same way again.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto z-10">
-          <Link 
-            to="/register" 
-            className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary/90 text-on-primary rounded-2xl font-bold text-lg transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(37,99,235,0.3)] active:scale-95 flex items-center justify-center gap-2"
-          >
-            Get Started for Free
-            <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-          </Link>
-          <a 
-            href="#how-it-works" 
-            className="w-full sm:w-auto px-8 py-4 bg-surface-container-highest/50 backdrop-blur-md hover:bg-surface-container-high text-on-surface rounded-2xl font-bold text-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 border border-outline-variant/20"
-          >
-            See How It Works
-          </a>
-        </div>
-        
-        {/* Abstract UI Mockup Element */}
-        <div className="mt-24 w-full max-w-5xl mx-auto rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-3xl shadow-2xl overflow-hidden transform perspective-1000 rotate-x-12 hover:rotate-x-0 transition-transform duration-700 ease-out flex flex-col">
-          <div className="h-12 bg-surface-container-low border-b border-outline-variant/10 flex items-center px-4 gap-2 shrink-0">
-            <div className="w-3 h-3 rounded-full bg-red-400"></div>
-            <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-            <div className="w-3 h-3 rounded-full bg-green-400"></div>
+      {/* ——— HERO ——— */}
+      <section className="relative pt-20 pb-32 px-6 md:px-margin-desktop max-w-[1280px] mx-auto text-center">
+        <div className="absolute inset-0 crosshatch-bg opacity-5 -z-10 pointer-events-none" />
+
+        {/* Hero text */}
+        <div className="max-w-3xl mx-auto space-y-8 relative">
+          <div className="inline-flex items-center gap-2 etched-border bg-white shadow-hard-sm px-4 py-1.5">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+            </span>
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-on-surface-variant">StudyLM · Public Beta</span>
           </div>
-          <div className="flex h-[500px] w-full text-left">
-            {/* Left Sidebar Mock (Sources) */}
-            <div className="w-64 border-r border-outline-variant/10 p-6 flex flex-col gap-4 bg-surface">
-               <div className="flex items-center gap-2 mb-2">
-                 <span className="material-symbols-outlined text-[16px] text-on-surface-variant">folder</span>
-                 <div className="h-3 w-20 bg-on-surface-variant/40 rounded-full"></div>
-               </div>
-               
-               <div className="h-24 bg-surface-container-lowest rounded-xl border border-outline-variant/20 flex flex-col justify-center items-center gap-2 shadow-sm group hover:border-primary/30 transition-colors">
-                 <span className="material-symbols-outlined text-red-500 text-[28px] group-hover:scale-110 transition-transform">picture_as_pdf</span>
-                 <div className="h-2 w-24 bg-on-surface-variant/30 rounded-full"></div>
-               </div>
-               
-               <div className="h-24 bg-surface-container-lowest rounded-xl border border-outline-variant/20 flex flex-col justify-center items-center gap-2 shadow-sm group hover:border-primary/30 transition-colors">
-                 <span className="material-symbols-outlined text-blue-500 text-[28px] group-hover:scale-110 transition-transform">description</span>
-                 <div className="h-2 w-20 bg-on-surface-variant/30 rounded-full"></div>
-               </div>
-            </div>
-            
-            {/* Main Area Mock */}
-            <div className="flex-1 flex flex-col relative bg-surface-container-lowest">
-              {/* Top bar */}
-              <div className="h-16 border-b border-outline-variant/10 flex items-center px-8 justify-between">
-                <div className="h-4 w-48 bg-on-surface/10 rounded-full"></div>
-                <div className="h-8 w-24 bg-primary/10 rounded-lg"></div>
+
+          <h1 className="font-serif text-display-lg-mobile md:text-display-lg text-on-surface leading-tight">
+            Supercharge your study with<br /><span className="text-primary">AI-generated</span> roadmaps.
+          </h1>
+
+          <p className="font-sans text-body-lg text-on-surface-variant max-w-xl mx-auto">
+            Transform raw sources into intelligent study materials. StudyLM bridges the gap between chaotic documentation and academic mastery.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+            <Link
+              to="/register"
+              className="bg-primary-container text-on-primary-container px-8 py-4 etched-border shadow-hard btn-press font-sans font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2"
+            >
+              Start Your Journey
+              <span className="material-symbols-outlined text-[18px]">north_east</span>
+            </Link>
+            <a
+              href="#process"
+              className="bg-transparent text-on-surface px-8 py-4 etched-border shadow-hard btn-press font-sans font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2"
+            >
+              View Methods
+            </a>
+          </div>
+        </div>
+
+        {/* 3-column workspace UI mockup — etched redesign */}
+        <div className="mt-40 w-full max-w-5xl mx-auto etched-border shadow-hard overflow-hidden flex flex-col">
+          {/* Chrome bar */}
+          <div className="h-10 bg-surface-container border-b border-outline-variant flex items-center px-4 gap-3 shrink-0">
+            <span className="font-serif font-bold text-sm text-primary">StudyLM</span>
+            <div className="h-5 flex-1 max-w-[180px] bg-white border border-outline-variant/50" />
+          </div>
+
+          <div className="flex h-[460px] w-full text-left">
+            {/* Column 1: Sources */}
+            <div className="w-52 border-r border-outline-variant bg-surface-container-lowest flex flex-col p-4 gap-3 shrink-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-sans font-bold text-[10px] uppercase tracking-widest text-outline">Sources</span>
+                <span className="material-symbols-outlined text-primary text-[16px]">add_circle</span>
               </div>
-              
-              {/* Chat Area */}
-              <div className="flex-1 p-8 flex flex-col gap-6 overflow-hidden">
-                {/* AI Message */}
-                <div className="flex gap-4 max-w-[85%]">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                    <span className="material-symbols-outlined text-[20px] text-primary">auto_awesome</span>
-                  </div>
-                  <div className="bg-surface p-5 rounded-2xl rounded-tl-sm border border-outline-variant/10 shadow-sm space-y-3 w-full">
-                    <div className="h-3 w-full bg-on-surface-variant/40 rounded-full"></div>
-                    <div className="h-3 w-[95%] bg-on-surface-variant/40 rounded-full"></div>
-                    <div className="h-3 w-4/5 bg-on-surface-variant/40 rounded-full"></div>
-                    <div className="flex gap-2 pt-2">
-                      <div className="h-6 w-16 bg-primary/10 rounded-md"></div>
-                      <div className="h-6 w-16 bg-primary/10 rounded-md"></div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* User Message */}
-                <div className="flex gap-4 max-w-[70%] self-end flex-row-reverse">
-                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center shrink-0 border border-secondary/20">
-                    <span className="material-symbols-outlined text-[20px] text-secondary">person</span>
-                  </div>
-                  <div className="bg-primary text-on-primary p-5 rounded-2xl rounded-tr-sm shadow-md space-y-3 w-full">
-                    <div className="h-3 w-full bg-white/70 rounded-full"></div>
-                    <div className="h-3 w-2/3 bg-white/70 rounded-full"></div>
-                  </div>
-                </div>
+              <div className="p-3 etched-border bg-white shadow-hard-sm flex flex-col gap-2">
+                <span className="material-symbols-outlined text-outline text-[18px]">picture_as_pdf</span>
+                <div className="h-2 w-20 bg-on-surface/20 rounded-sm" />
+                <div className="h-1.5 w-10 bg-outline-variant/50 rounded-sm" />
               </div>
-              
-              {/* Input Area */}
-              <div className="p-6 pt-2 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest to-transparent">
-                <div className="h-14 w-full bg-surface border border-outline-variant/20 rounded-full shadow-sm flex items-center px-6 justify-between">
-                  <div className="h-3 w-48 bg-on-surface-variant/30 rounded-full"></div>
-                  <div className="flex gap-2">
-                    <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[16px] text-on-surface-variant">attach_file</span>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/20">
-                      <span className="material-symbols-outlined text-[16px] text-white">arrow_upward</span>
-                    </div>
-                  </div>
+              <div className="p-3 etched-border bg-white shadow-hard-sm flex flex-col gap-2">
+                <span className="material-symbols-outlined text-outline text-[18px]">description</span>
+                <div className="h-2 w-24 bg-on-surface/20 rounded-sm" />
+                <div className="h-1.5 w-12 bg-outline-variant/50 rounded-sm" />
+              </div>
+              <div className="mt-auto">
+                <div className="w-full py-2 etched-border bg-primary-container text-on-primary-container font-sans font-bold text-[9px] uppercase tracking-widest text-center shadow-hard-sm">
+                  Add Source
                 </div>
               </div>
             </div>
-            
-            {/* Right Sidebar Mock (Roadmap) */}
-            <div className="hidden lg:flex w-64 border-l border-outline-variant/10 p-5 bg-surface flex-col gap-6">
-              <div className="flex items-center gap-2">
-                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                   <span className="material-symbols-outlined text-[18px] text-primary">auto_stories</span>
-                 </div>
-                 <div className="h-3 w-24 bg-on-surface/20 rounded-full"></div>
+
+            {/* Column 2: Chat */}
+            <div className="flex-1 flex flex-col bg-background border-r border-outline-variant overflow-hidden">
+              <div className="px-4 py-3 border-b border-outline-variant bg-white flex justify-between items-center shrink-0">
+                <div>
+                  <div className="font-serif font-semibold text-sm text-on-surface">Academic Assistant</div>
+                  <div className="text-[10px] text-outline font-sans">Analyzing 2 sources</div>
+                </div>
+                <span className="material-symbols-outlined text-outline text-[18px]">more_horiz</span>
               </div>
-              
-              {/* Modules */}
-              <div className="space-y-4">
-                <div className="flex gap-3 items-start">
-                  <div className="w-4 h-4 rounded-full bg-green-500 ring-4 ring-green-500/20 shrink-0 mt-1"></div>
-                  <div className="w-full bg-surface-container-lowest p-4 rounded-xl border border-green-500/30 shadow-sm">
-                    <div className="h-2 w-16 bg-green-500/60 rounded-full mb-3"></div>
-                    <div className="h-3 w-full bg-on-surface/40 rounded-full mb-2"></div>
-                    <div className="h-3 w-2/3 bg-on-surface/40 rounded-full"></div>
+              <div className="flex-1 p-5 flex flex-col gap-5 overflow-hidden">
+                {/* AI bubble */}
+                <div className="flex flex-col max-w-[85%] self-start">
+                  <div className="etched-border bg-white p-3 relative">
+                    <div className="space-y-1.5">
+                      <div className="h-2 w-full bg-on-surface/15 rounded-sm" />
+                      <div className="h-2 w-[90%] bg-on-surface/15 rounded-sm" />
+                      <div className="h-2 w-4/5 bg-on-surface/15 rounded-sm" />
+                    </div>
+                    <div
+                      className="absolute -left-1.5 top-3 w-3 h-3 bg-white rotate-45"
+                      style={{ borderLeft: '1px solid #1b1c1c', borderBottom: '1px solid #1b1c1c' }}
+                    />
+                  </div>
+                  <span className="text-[9px] mt-1 uppercase font-bold text-outline-variant font-sans px-1">StudyLM</span>
+                </div>
+                {/* User bubble */}
+                <div className="flex flex-col max-w-[75%] self-end">
+                  <div className="etched-border bg-primary p-3 relative">
+                    <div className="space-y-1.5">
+                      <div className="h-2 w-full bg-white/30 rounded-sm" />
+                      <div className="h-2 w-3/4 bg-white/30 rounded-sm" />
+                    </div>
+                    <div className="absolute -right-1.5 top-3 w-3 h-3 bg-primary rotate-45" />
+                  </div>
+                  <span className="text-[9px] mt-1 uppercase font-bold text-outline-variant self-end font-sans px-1">You</span>
+                </div>
+                {/* AI bubble 2 */}
+                <div className="flex flex-col max-w-[85%] self-start">
+                  <div className="etched-border bg-white p-3 relative">
+                    <div className="space-y-1.5">
+                      <div className="h-2 w-full bg-on-surface/15 rounded-sm" />
+                      <div className="h-2 w-4/5 bg-on-surface/15 rounded-sm" />
+                    </div>
+                    <div
+                      className="absolute -left-1.5 top-3 w-3 h-3 bg-white rotate-45"
+                      style={{ borderLeft: '1px solid #1b1c1c', borderBottom: '1px solid #1b1c1c' }}
+                    />
+                  </div>
+                  <span className="text-[9px] mt-1 uppercase font-bold text-outline-variant font-sans px-1">StudyLM</span>
+                </div>
+              </div>
+              <div className="p-4 border-t border-outline-variant bg-white shrink-0">
+                <div className="flex gap-3 items-center">
+                  <div className="flex-1 etched-border bg-surface-container-lowest h-10" />
+                  <div className="w-10 h-10 etched-border bg-primary flex items-center justify-center shadow-hard shrink-0">
+                    <span className="material-symbols-outlined text-white text-[16px]">send</span>
                   </div>
                 </div>
-                <div className="flex gap-3 items-start">
-                  <div className="w-4 h-4 rounded-full bg-primary ring-4 ring-primary/20 shrink-0 mt-1"></div>
-                  <div className="w-full bg-surface-container-lowest p-4 rounded-xl border border-primary/30 shadow-sm hover:border-primary/50 transition-colors">
-                    <div className="h-2 w-16 bg-primary/60 rounded-full mb-3"></div>
-                    <div className="h-3 w-[90%] bg-on-surface/60 rounded-full mb-2"></div>
-                    <div className="h-3 w-3/4 bg-on-surface/60 rounded-full"></div>
+              </div>
+            </div>
+
+            {/* Column 3: Study Roadmap */}
+            <div className="w-56 bg-surface-container-low flex flex-col p-5 gap-4 shrink-0 overflow-hidden">
+              <div className="mb-1 shrink-0">
+                <div className="text-[9px] uppercase font-bold tracking-widest text-outline font-sans">Generated Asset</div>
+                <div className="font-serif font-semibold text-sm text-on-surface mt-0.5">Study Roadmap</div>
+              </div>
+              <div className="relative pl-6 flex-1">
+                <div className="absolute left-[8px] top-3 bottom-3 w-px dashed-line opacity-40" />
+                {/* Phase 1 - finished */}
+                <div className="relative mb-4">
+                  <div className="absolute -left-[20px] top-1 w-4 h-4 rounded-full bg-primary etched-border flex items-center justify-center shadow-hard-sm">
+                    <span className="material-symbols-outlined text-white text-[9px]">check</span>
+                  </div>
+                  <div className="bg-white etched-border p-2.5 shadow-hard-sm">
+                    <div className="text-[8px] font-bold uppercase text-primary font-sans mb-1">Phase 1</div>
+                    <div className="h-1.5 w-full bg-on-surface/20 rounded-sm mb-1" />
+                    <div className="h-1.5 w-4/5 bg-on-surface/20 rounded-sm" />
                   </div>
                 </div>
-                <div className="flex gap-3 items-start opacity-60">
-                  <div className="w-4 h-4 rounded-full border-2 border-outline-variant shrink-0 mt-1"></div>
-                  <div className="w-full bg-surface-container-low p-4 rounded-xl">
-                    <div className="h-2 w-16 bg-outline-variant rounded-full mb-3"></div>
-                    <div className="h-3 w-4/5 bg-on-surface-variant/40 rounded-full mb-2"></div>
-                    <div className="h-3 w-1/2 bg-on-surface-variant/40 rounded-full"></div>
+                {/* Phase 2 - active */}
+                <div className="relative mb-4">
+                  <div className="absolute -left-[20px] top-1 w-4 h-4 rounded-full bg-white etched-border flex items-center justify-center shadow-hard-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  </div>
+                  <div className="bg-white etched-border p-2.5 shadow-hard-sm">
+                    <div className="text-[8px] font-bold uppercase text-primary font-sans mb-1">Phase 2</div>
+                    <div className="h-1.5 w-full bg-on-surface/20 rounded-sm mb-1" />
+                    <div className="h-1.5 w-3/4 bg-on-surface/20 rounded-sm" />
+                  </div>
+                </div>
+                {/* Phase 3 - action */}
+                <div className="relative">
+                  <div className="absolute -left-[20px] top-1 w-4 h-4 rounded-full bg-white etched-border flex items-center justify-center shadow-hard-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-outline-variant" />
+                  </div>
+                  <div className="bg-primary-container border border-dashed border-on-surface p-2.5 shadow-hard">
+                    <div className="text-[8px] font-bold uppercase text-on-primary-container font-sans opacity-70 mb-1">Phase 3</div>
+                    <div className="h-1.5 w-full bg-on-primary-container/20 rounded-sm mb-1" />
+                    <div className="h-1.5 w-2/3 bg-on-primary-container/20 rounded-sm" />
                   </div>
                 </div>
               </div>
@@ -220,103 +224,221 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Bento Grid Features */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-32">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-on-surface mb-4">Everything you need to ace it.</h2>
-          <p className="text-on-surface-variant text-lg">Designed specifically for modern students and lifelong learners.</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
-          {/* Feature 1: Wide */}
-          <div className="md:col-span-2 relative overflow-hidden rounded-3xl bg-surface-container-lowest border border-outline-variant/20 p-8 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors"></div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <span className="material-symbols-outlined text-4xl text-primary mb-4 p-3 bg-primary/10 rounded-2xl inline-block">account_tree</span>
-                <h3 className="text-2xl font-bold text-on-surface mb-2">Automated Study Plans</h3>
-                <p className="text-on-surface-variant max-w-sm">Our AI scans your uploaded materials and breaks them down into logical, digestible learning modules sorted by difficulty.</p>
-              </div>
-            </div>
+      {/* ——— PROCESS ——— */}
+      <section id="process" className="bg-surface-container py-24 px-6 md:px-margin-desktop">
+        <div className="max-w-[1280px] mx-auto">
+          <div className="text-center mb-16">
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-primary">The Process</span>
+            <h2 className="font-serif text-headline-lg text-on-surface mt-2">From Documents to Mastery</h2>
           </div>
-          
-          {/* Feature 2: Small */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary to-primary-container text-on-primary p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute top-0 right-0 w-full h-full bg-white/5 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjIpIi8+PC9zdmc+')] mix-blend-overlay"></div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <span className="material-symbols-outlined text-4xl mb-4 p-3 bg-white/20 rounded-2xl inline-block backdrop-blur-sm">quiz</span>
-                <h3 className="text-2xl font-bold mb-2">Smart Quizzes</h3>
-                <p className="opacity-90">Test your knowledge at the end of each module with automatically generated quizzes.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: 'upload_file', title: 'Upload Sources', desc: 'Import your PDFs, notes, and research papers into your private secure notebook.' },
+              { icon: 'forum', title: 'Chat with AI', desc: 'Interrogate your documents with scholarly precision using our context-aware assistant.' },
+              { icon: 'auto_stories', title: 'Master Topics', desc: 'Generate quizzes, structured study plans, and knowledge checks tailored to your materials.' },
+            ].map(({ icon, title, desc }) => (
+              <div
+                key={title}
+                className="bg-white p-8 etched-border shadow-hard hover:-translate-x-1 hover:-translate-y-1 hover:shadow-hard-lg transition-all flex flex-col items-center text-center"
+              >
+                <span
+                  className="material-symbols-outlined text-4xl text-on-surface mb-6"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  {icon}
+                </span>
+                <h3 className="font-serif text-headline-md mb-3">{title}</h3>
+                <p className="font-sans text-sm text-on-surface-variant leading-relaxed">{desc}</p>
               </div>
-            </div>
-          </div>
-
-          {/* Feature 3: Small */}
-          <div className="relative overflow-hidden rounded-3xl bg-surface-container-lowest border border-outline-variant/20 p-8 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 group hover:-translate-y-1">
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <span className="material-symbols-outlined text-4xl text-secondary mb-4 p-3 bg-secondary/10 rounded-2xl inline-block">smart_toy</span>
-                <h3 className="text-2xl font-bold text-on-surface mb-2">RAG Chatbot</h3>
-                <p className="text-on-surface-variant">Chat directly with your documents. Ask questions and get cited answers instantly.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature 4: Wide */}
-          <div className="md:col-span-2 relative overflow-hidden rounded-3xl bg-surface-container-lowest border border-outline-variant/20 p-8 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 group">
-            <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-surface-container-high/20 to-transparent"></div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <span className="material-symbols-outlined text-4xl text-primary mb-4 p-3 bg-primary/10 rounded-2xl inline-block">analytics</span>
-                <h3 className="text-2xl font-bold text-on-surface mb-2">Progress Tracking</h3>
-                <p className="text-on-surface-variant max-w-sm">Watch your knowledge grow. We track the exact time spent per module and your overall completion rate.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-32 border-t border-outline-variant/10">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-on-surface mb-4">How it works</h2>
+      {/* ——— FEATURE SECTIONS ——— */}
+      <section className="py-24 px-6 md:px-margin-desktop max-w-[1280px] mx-auto overflow-hidden">
+
+        {/* AI Reading Assistant */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-primary">Assistant</span>
+            <h2 className="font-serif text-headline-lg text-on-surface mt-2 mb-6">AI Reading Assistant</h2>
+            <p className="font-sans text-body-lg text-on-surface-variant mb-8">
+              Never read alone. Our AI partner highlights key arguments, identifies cross-references between sources, and clarifies complex terminology in real-time as you read.
+            </p>
+            <ul className="space-y-4">
+              {[
+                'Contextual summary of long-form chapters.',
+                'Instant definition of academic jargon.',
+                'Source cross-referencing and citation links.',
+              ].map(text => (
+                <li key={text} className="flex items-start gap-3">
+                  <span
+                    className="material-symbols-outlined text-primary shrink-0"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    check_circle
+                  </span>
+                  <span className="font-sans text-body-md">{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Decorative: reading/document card */}
+          <div className="relative">
+            <div className="bg-white etched-border shadow-hard p-8 rotate-2">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 etched-border flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[28px] text-primary">auto_stories</span>
+                </div>
+                <div className="space-y-1.5 flex-1">
+                  <div className="h-2.5 w-3/4 bg-on-surface/20 rounded-sm" />
+                  <div className="h-2 w-1/2 bg-outline-variant/40 rounded-sm" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="h-2.5 w-full bg-on-surface/15 rounded-sm" />
+                <div className="h-2.5 w-[95%] bg-on-surface/15 rounded-sm" />
+                <div className="h-2.5 w-4/5 bg-on-surface/15 rounded-sm" />
+                <div className="h-2.5 bg-primary-container/70 w-3/5 rounded-sm" />
+                <div className="h-2.5 w-[90%] bg-on-surface/15 rounded-sm" />
+                <div className="h-2.5 w-2/3 bg-on-surface/15 rounded-sm" />
+              </div>
+              <div className="mt-6 pt-4 border-t border-outline-variant flex gap-2">
+                <div className="etched-border px-3 py-1.5 text-[10px] font-bold uppercase font-sans text-primary flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">auto_stories</span>
+                  See Source
+                </div>
+                <div className="etched-border px-3 py-1.5 text-[10px] font-bold uppercase font-sans text-outline flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">link</span>
+                  Citation
+                </div>
+              </div>
+            </div>
+            <div className="absolute -top-4 -right-4 w-20 h-20 bg-primary-container/20 etched-border -z-10" />
+          </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-          <div className="hidden md:block absolute top-12 left-24 right-24 h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20"></div>
-          
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="w-24 h-24 rounded-full bg-surface-container-lowest border-[8px] border-background shadow-xl flex items-center justify-center text-3xl font-black text-primary mb-6 ring-1 ring-outline-variant/20">1</div>
-            <h3 className="text-xl font-bold text-on-surface mb-2">Upload Files</h3>
-            <p className="text-on-surface-variant">Drop in your PDFs, text files, or lecture notes. We securely process everything.</p>
+
+        {/* Active Recall Engine */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mt-32">
+          {/* Decorative: quiz card */}
+          <div className="relative order-2 lg:order-1">
+            <div className="bg-white etched-border shadow-hard p-8 -rotate-2">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <div className="font-sans font-bold text-[10px] uppercase tracking-widest text-primary mb-1">Active Recall</div>
+                  <div className="font-serif text-lg text-on-surface">Knowledge Check</div>
+                </div>
+                <div className="etched-border px-3 py-1 text-[10px] font-bold uppercase font-sans bg-primary-fixed text-on-primary-fixed rotate-2">
+                  +20 XP
+                </div>
+              </div>
+              <p className="font-serif text-base text-on-surface mb-5 leading-snug">
+                What is the primary mechanism of incentive salience?
+              </p>
+              <div className="space-y-2.5">
+                <div className="p-3 etched-border flex items-center gap-3 text-sm font-sans opacity-40">
+                  <span className="material-symbols-outlined text-sm shrink-0">radio_button_unchecked</span>
+                  Executive mood regulation
+                </div>
+                <div className="p-3 bg-error-container etched-border flex items-center gap-3 text-sm font-sans text-on-error-container">
+                  <span className="material-symbols-outlined text-sm shrink-0">cancel</span>
+                  Dopamine burst from VTA
+                </div>
+                <div className="p-3 bg-primary-container etched-border flex items-center gap-3 text-sm font-sans text-on-primary-container">
+                  <span className="material-symbols-outlined text-sm shrink-0">check_circle</span>
+                  Reward prediction error
+                </div>
+              </div>
+            </div>
+            <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-primary-container/20 etched-border -z-10" />
           </div>
-          
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="w-24 h-24 rounded-full bg-surface-container-lowest border-[8px] border-background shadow-xl flex items-center justify-center text-3xl font-black text-primary mb-6 ring-1 ring-outline-variant/20">2</div>
-            <h3 className="text-xl font-bold text-on-surface mb-2">Generate Roadmap</h3>
-            <p className="text-on-surface-variant">Our AI reads your documents and creates a step-by-step syllabus tailored to your materials.</p>
-          </div>
-          
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="w-24 h-24 rounded-full bg-primary border-[8px] border-background shadow-xl shadow-primary/20 flex items-center justify-center text-3xl font-black text-on-primary mb-6 ring-1 ring-primary/20 hover:scale-110 transition-transform">3</div>
-            <h3 className="text-xl font-bold text-on-surface mb-2">Learn & Quiz</h3>
-            <p className="text-on-surface-variant">Read the AI-summarized modules, chat with the text, and test your knowledge.</p>
+
+          <div className="order-1 lg:order-2">
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-primary">Retention</span>
+            <h2 className="font-serif text-headline-lg text-on-surface mt-2 mb-6">Active Recall Engine</h2>
+            <p className="font-sans text-body-lg text-on-surface-variant mb-8">
+              Stop passive highlighting. StudyLM generates dynamic quizzes and knowledge checks based on your specific research material, ensuring you retain the most critical information.
+            </p>
+            <ul className="space-y-4">
+              {[
+                'Spaced repetition scheduling for optimal memory.',
+                'Socratic questioning to deepen understanding.',
+                'Difficulty-graded modules from Easy to Hard.',
+              ].map(text => (
+                <li key={text} className="flex items-start gap-3">
+                  <span
+                    className="material-symbols-outlined text-primary shrink-0"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    check_circle
+                  </span>
+                  <span className="font-sans text-body-md">{text}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* CTA Footer */}
-      <footer className="relative z-10 w-full bg-surface-container-lowest border-t border-outline-variant/10 py-16 px-6 text-center">
-        <h2 className="text-2xl font-bold text-on-surface mb-6">Ready to learn faster?</h2>
-        <Link 
-          to="/register" 
-          className="inline-flex px-8 py-4 bg-primary hover:bg-primary/90 text-on-primary rounded-xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-lg"
-        >
-          Create your free account
-        </Link>
-        <p className="text-sm text-on-surface-variant mt-8">© {new Date().getFullYear()} StudyLM. All rights reserved.</p>
+      {/* ——— CTA ——— */}
+      <section className="py-24 px-6 md:px-margin-desktop bg-surface-container-high">
+        <div className="max-w-3xl mx-auto text-center space-y-10">
+          <div className="inline-block p-4 etched-border bg-white shadow-hard -rotate-3">
+            <span className="material-symbols-outlined text-5xl">school</span>
+          </div>
+          <h2 className="font-serif text-display-lg-mobile md:text-display-lg text-on-surface">
+            Join the community<br />of scholars.
+          </h2>
+          <p className="font-sans text-body-lg text-on-surface-variant">
+            Ready to transform your research into a masterpiece of understanding? Join students and researchers who have found their way with StudyLM.
+          </p>
+          <div>
+            <Link
+              to="/register"
+              className="inline-flex bg-primary-container text-on-primary-container px-12 py-5 etched-border shadow-hard btn-press font-sans font-bold uppercase tracking-widest text-sm"
+            >
+              Create Your Free Account
+            </Link>
+            <p className="mt-4 font-sans text-xs text-on-surface-variant uppercase tracking-widest">
+              No credit card required. Scholarly ethics guaranteed.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ——— FOOTER ——— */}
+      <footer className="w-full border-t border-outline-variant bg-surface-container">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-6 md:px-margin-desktop py-12 max-w-[1280px] mx-auto">
+          <div>
+            <span className="font-serif text-headline-md text-on-surface mb-3 block">StudyLM</span>
+            <p className="font-sans text-sm text-on-surface-variant">
+              © {new Date().getFullYear()} StudyLM. Scholarly tools for the modern academic.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-primary">Quick Links</span>
+            <a href="#process" className="font-sans text-sm text-on-surface-variant hover:text-primary transition-colors hover:underline underline-offset-4">Methods</a>
+            <Link to="/login" className="font-sans text-sm text-on-surface-variant hover:text-primary transition-colors hover:underline underline-offset-4">Sign In</Link>
+            <Link to="/register" className="font-sans text-sm text-on-surface-variant hover:text-primary transition-colors hover:underline underline-offset-4">Get Started</Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-primary">Legal</span>
+            <span className="font-sans text-sm text-on-surface-variant">Privacy Policy</span>
+            <span className="font-sans text-sm text-on-surface-variant">Terms of Service</span>
+          </div>
+          <div className="flex flex-col gap-3">
+            <span className="font-sans font-bold text-xs uppercase tracking-widest text-primary">Support</span>
+            <span className="font-sans text-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer">Contact</span>
+            <div className="flex gap-3 mt-1">
+              <span className="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">share</span>
+              <span className="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">mail</span>
+            </div>
+          </div>
+        </div>
       </footer>
+
     </div>
   );
 }

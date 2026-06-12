@@ -3,21 +3,14 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import type { Notebook } from '../../types/notebook';
 
-// Helper to assign a random color tag to notebooks since it's not in the backend DTO yet
-const COLORS = [
-  { bg: 'bg-primary', text: 'text-primary' },
-  { bg: 'bg-tertiary', text: 'text-tertiary' },
-  { bg: 'bg-on-secondary-container', text: 'text-secondary' },
-  { bg: 'bg-outline', text: 'text-primary' }
-];
-
 interface NotebookGridProps {
   notebooks?: Notebook[];
   isLoading?: boolean;
   onRefresh?: () => void;
+  triggerCreate?: number;
 }
 
-export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: initialLoading, onRefresh }: NotebookGridProps) {
+export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: initialLoading, onRefresh, triggerCreate }: NotebookGridProps) {
   const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks || []);
   const [isLoading, setIsLoading] = useState(initialLoading !== undefined ? initialLoading : true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,7 +23,6 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
   const [editDescription, setEditDescription] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Close menu when clicking anywhere else
   useEffect(() => {
     const handleClickOutside = () => setMenuOpenId(null);
     window.addEventListener('click', handleClickOutside);
@@ -38,16 +30,16 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
   }, []);
 
   useEffect(() => {
-    if (initialNotebooks) {
-      setNotebooks(initialNotebooks);
-    }
+    if (initialNotebooks) setNotebooks(initialNotebooks);
   }, [initialNotebooks]);
 
   useEffect(() => {
-    if (initialLoading !== undefined) {
-      setIsLoading(initialLoading);
-    }
+    if (initialLoading !== undefined) setIsLoading(initialLoading);
   }, [initialLoading]);
+
+  useEffect(() => {
+    if (triggerCreate && triggerCreate > 0) setIsModalOpen(true);
+  }, [triggerCreate]);
 
   const fetchNotebooks = async () => {
     try {
@@ -62,26 +54,19 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
   };
 
   useEffect(() => {
-    if (!initialNotebooks) {
-      fetchNotebooks();
-    }
-  }, [initialNotebooks]);
+    if (!initialNotebooks) fetchNotebooks();
+  }, []);
 
   const handleCreateNotebook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle) return;
-    
     try {
       setIsCreating(true);
       await api.post('/notebooks', { title: newTitle, description: newDescription });
       setIsModalOpen(false);
       setNewTitle('');
       setNewDescription('');
-      if (onRefresh) {
-        onRefresh();
-      } else {
-        await fetchNotebooks();
-      }
+      onRefresh ? onRefresh() : await fetchNotebooks();
     } catch (error) {
       console.error('Failed to create notebook', error);
     } finally {
@@ -93,14 +78,9 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
     e.preventDefault();
     e.stopPropagation();
     if (!confirm('Are you sure you want to delete this notebook? All sources and study plans will be permanently removed.')) return;
-
     try {
       await api.delete(`/notebooks/${notebookId}`);
-      if (onRefresh) {
-        onRefresh();
-      } else {
-        await fetchNotebooks();
-      }
+      onRefresh ? onRefresh() : await fetchNotebooks();
     } catch (error) {
       console.error('Failed to delete notebook', error);
       alert('Failed to delete notebook');
@@ -110,19 +90,11 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
   const handleUpdateNotebook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingNotebook || !editTitle) return;
-
     try {
       setIsUpdating(true);
-      await api.patch(`/notebooks/${editingNotebook.id}`, { 
-        title: editTitle, 
-        description: editDescription 
-      });
+      await api.patch(`/notebooks/${editingNotebook.id}`, { title: editTitle, description: editDescription });
       setEditingNotebook(null);
-      if (onRefresh) {
-        onRefresh();
-      } else {
-        await fetchNotebooks();
-      }
+      onRefresh ? onRefresh() : await fetchNotebooks();
     } catch (error) {
       console.error('Failed to update notebook', error);
       alert('Failed to update notebook');
@@ -131,154 +103,166 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
     }
   };
 
-  const getRelativeTime = (dateString: string) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24));
     if (diffInDays === 0) return 'Today';
     if (diffInDays === 1) return 'Yesterday';
-    return `${diffInDays} days ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <button 
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-gutter">
+
+        {/* Create New Notebook card */}
+        <button
           onClick={() => setIsModalOpen(true)}
-          className="group relative h-64 border-2 border-dashed border-outline-variant hover:border-primary/50 hover:bg-surface-container-low transition-all duration-300 rounded-xl flex flex-col items-center justify-center gap-4 bg-transparent outline-none ring-primary focus:ring-4"
+          className="group flex flex-col items-center justify-center p-8 border-2 border-dashed border-outline rounded bg-surface-container-low hover:bg-surface-container-high transition-all min-h-[320px]"
         >
-          <div className="w-14 h-14 rounded-full bg-surface-container-highest group-hover:bg-primary group-hover:text-white transition-all flex items-center justify-center">
-            <span className="material-symbols-outlined text-3xl">add</span>
+          <div className="w-16 h-16 rounded-full etched-border flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <span className="material-symbols-outlined text-4xl text-on-surface">add</span>
           </div>
-          <span className="font-bold text-sm text-on-surface-variant group-hover:text-primary tracking-tight">Create New Notebook</span>
+          <span className="font-serif text-headline-md text-on-surface">Create New Notebook</span>
+          <p className="font-sans text-body-md text-on-surface-variant mt-2 text-center">Start a fresh research project</p>
         </button>
 
-        {isLoading ? (
-          // Skeleton loaders
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={`skeleton-${i}`} className="h-64 bg-surface-container-lowest rounded-xl shadow-sm animate-pulse flex flex-col">
-              <div className="h-2 bg-surface-container-highest"></div>
-              <div className="p-6 flex-1 flex flex-col">
-                <div className="w-8 h-8 bg-surface-container-highest rounded-full mb-4"></div>
-                <div className="h-4 w-3/4 bg-surface-container-highest rounded mb-2"></div>
-                <div className="h-3 w-1/2 bg-surface-container-highest rounded mt-auto"></div>
+        {/* Skeleton loaders */}
+        {isLoading && Array.from({ length: 3 }).map((_, i) => (
+          <div key={`skeleton-${i}`} className="min-h-[320px] bg-surface-container-lowest rounded etched-border animate-pulse flex flex-col p-6">
+            <div className="h-5 w-1/2 bg-surface-container-highest rounded mb-3"></div>
+            <div className="h-4 w-full bg-surface-container-highest rounded mb-2"></div>
+            <div className="h-4 w-3/4 bg-surface-container-highest rounded mb-2"></div>
+            <div className="mt-auto h-8 w-24 bg-surface-container-highest rounded"></div>
+          </div>
+        ))}
+
+        {/* Notebook cards */}
+        {!isLoading && [...notebooks].sort((a, b) => new Date(b.lastOpenedDateTime).getTime() - new Date(a.lastOpenedDateTime).getTime()).map((nb) => (
+          <Link
+            to={`/workspace/${nb.id}`}
+            key={nb.id}
+            className="group bg-white etched-border shadow-hard flex flex-col justify-between min-h-[320px] hover:-translate-y-1 transition-transform rounded"
+          >
+            <div className="p-6 flex flex-col h-full">
+              {/* Card header */}
+              <div className="flex justify-between items-start mb-6">
+                <span className="material-symbols-outlined text-outline-variant">menu_book</span>
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setMenuOpenId(menuOpenId === nb.id ? null : nb.id);
+                    }}
+                    className="w-8 h-8 flex items-center justify-center text-outline-variant hover:text-on-surface transition-colors"
+                  >
+                    <span className="material-symbols-outlined">more_vert</span>
+                  </button>
+
+                  {menuOpenId === nb.id && (
+                    <div className="absolute right-0 mt-1 w-44 bg-surface-container-lowest etched-border shadow-hard z-50 py-1">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditTitle(nb.title);
+                          setEditDescription(nb.description);
+                          setEditingNotebook(nb);
+                          setMenuOpenId(null);
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 font-sans text-label-md text-on-surface hover:bg-surface-container transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                        Edit Notebook
+                      </button>
+                      <div className="h-px bg-outline-variant mx-2"></div>
+                      <button
+                        onClick={(e) => handleDeleteNotebook(e, nb.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 font-sans text-label-md text-error hover:bg-error-container transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                        Delete Notebook
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Title + description */}
+              <h3 className="font-serif text-headline-md text-on-surface mb-3 line-clamp-2">{nb.title}</h3>
+              <p className="font-sans text-body-md text-on-surface-variant line-clamp-3">{nb.description}</p>
+
+              {/* Footer */}
+              <div className="mt-auto pt-6 border-t border-outline-variant flex items-center justify-between">
+                <div className="flex items-center gap-2 font-sans text-label-md text-on-surface opacity-60">
+                  <span className="material-symbols-outlined text-sm">event</span>
+                  {formatDate(nb.lastOpenedDateTime)}
+                </div>
+                <div className="bg-primary-container text-on-primary-container px-4 py-2 font-sans font-bold text-sm etched-border shadow-hard-sm flex items-center gap-2">
+                  Open <span className="text-base">→</span>
+                </div>
               </div>
             </div>
-          ))
-        ) : (
-          notebooks.map((nb, index) => {
-            const colorObj = COLORS[index % COLORS.length];
-            return (
-              <Link to={`/workspace/${nb.id}`} key={nb.id} className="group h-64 bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] hover:shadow-[0_20px_50px_rgba(25,28,30,0.1)] transition-all duration-300 flex flex-col overflow-hidden outline-none ring-primary focus:ring-4">
-                <div className={`h-2 ${colorObj.bg}`}></div>
-                <div className="p-6 flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-4 relative">
-                    <span className={`material-symbols-outlined ${colorObj.text}`}>menu_book</span>
-                    <div className="relative">
-                      <button 
-                        onClick={(e) => { 
-                          e.preventDefault(); 
-                          e.stopPropagation();
-                          setMenuOpenId(menuOpenId === nb.id ? null : nb.id);
-                        }}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-on-surface-variant/40 hover:text-on-surface">more_vert</span>
-                      </button>
-                      
-                      {menuOpenId === nb.id && (
-                        <div className="absolute right-0 mt-1 w-40 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-xl z-50 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-                          <button 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setEditTitle(nb.title);
-                              setEditDescription(nb.description);
-                              setEditingNotebook(nb);
-                              setMenuOpenId(null);
-                            }}
-                            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-colors whitespace-nowrap"
-                          >
-                            <span className="material-symbols-outlined text-sm">edit</span>
-                            Edit Notebook
-                          </button>
-                          
-                          <div className="h-[1px] bg-outline-variant/10 mx-2"></div>
-                          
-                          <button 
-                            onClick={(e) => handleDeleteNotebook(e, nb.id)}
-                            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-error hover:bg-error/10 transition-colors whitespace-nowrap"
-                          >
-                            <span className="material-symbols-outlined text-sm">delete</span>
-                            Delete Notebook
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <h3 className={`text-lg font-bold text-on-surface tracking-tight mb-1 group-hover:${colorObj.text} transition-colors line-clamp-2`}>{nb.title}</h3>
-                  <p className="text-xs text-on-surface-variant line-clamp-2 mb-2">{nb.description}</p>
-                  
-                  <div className="mt-auto space-y-3">
-                    <div className="flex items-center gap-1.5 text-on-surface-variant text-[11px] font-medium bg-surface-container-low w-fit px-2 py-1 rounded-md">
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
-                      <span>Opened {getRelativeTime(nb.lastOpenedDateTime)}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            )
-          })
-        )}
+          </Link>
+        ))}
       </div>
 
       {/* Edit Modal */}
       {editingNotebook && (
-        <div className="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-[100] flex justify-center items-center p-4 animate-in fade-in duration-200">
-          <div className="bg-surface-container-lowest rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200 border border-outline-variant/20">
+        <div className="fixed inset-0 bg-on-surface/60 z-[100] flex justify-center items-center p-4">
+          <div className="bg-surface-container-lowest etched-border shadow-hard-lg max-w-md w-full p-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-extrabold text-on-surface">Edit Notebook</h2>
-              <button onClick={() => setEditingNotebook(null)} className="p-2 hover:bg-surface-container rounded-full text-on-surface-variant transition-colors">
+              <h2 className="font-serif text-headline-md text-on-surface">Edit Notebook</h2>
+              <button
+                onClick={() => setEditingNotebook(null)}
+                className="p-2 text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            
+
             <form onSubmit={handleUpdateNotebook} className="space-y-5">
               <div>
-                <label className="block text-sm font-bold text-on-surface mb-2">Title</label>
-                <input 
+                <label className="block font-sans text-label-md text-on-surface mb-2">Title</label>
+                <input
                   autoFocus
-                  type="text" 
+                  type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl px-4 py-3 text-on-surface outline-none transition-all font-medium text-sm"
+                  className="w-full bg-surface-container-low etched-border px-4 py-3 font-sans text-body-md text-on-surface outline-none focus:ring-2 focus:ring-primary transition-all"
                   placeholder="e.g., Quantum Physics 101"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-on-surface mb-2">Description <span className="text-on-surface-variant/50 font-normal">(Optional)</span></label>
-                <textarea 
+                <label className="block font-sans text-label-md text-on-surface mb-2">
+                  Description <span className="text-on-surface-variant font-normal">(Optional)</span>
+                </label>
+                <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl px-4 py-3 text-on-surface outline-none transition-all font-medium text-sm resize-none h-24"
+                  className="w-full bg-surface-container-low etched-border px-4 py-3 font-sans text-body-md text-on-surface outline-none focus:ring-2 focus:ring-primary transition-all resize-none h-24"
                   placeholder="What is this notebook about?"
                 />
               </div>
-              <div className="pt-4 flex gap-3">
-                <button 
-                  type="button" 
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
                   onClick={() => setEditingNotebook(null)}
-                  className="flex-1 py-3 font-bold text-on-surface-variant hover:bg-surface-container rounded-xl transition-colors"
+                  className="flex-1 py-3 font-sans font-bold text-label-md text-on-surface-variant etched-border hover:bg-surface-container transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isUpdating || !editTitle}
-                  className="flex-1 bg-primary text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-container transition-colors disabled:opacity-50 flex justify-center items-center"
+                  className="flex-1 bg-primary-container text-on-primary-container font-sans font-bold text-label-md py-3 etched-border shadow-hard btn-press transition-all disabled:opacity-50 flex justify-center items-center"
                 >
-                  {isUpdating ? <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span> : 'Save Changes'}
+                  {isUpdating
+                    ? <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                    : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -288,51 +272,58 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
 
       {/* Create Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-[100] flex justify-center items-center p-4 animate-in fade-in duration-200">
-          <div className="bg-surface-container-lowest rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200 border border-outline-variant/20">
+        <div className="fixed inset-0 bg-on-surface/60 z-[100] flex justify-center items-center p-4">
+          <div className="bg-surface-container-lowest etched-border shadow-hard-lg max-w-md w-full p-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-extrabold text-on-surface">New Notebook</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-surface-container rounded-full text-on-surface-variant transition-colors">
+              <h2 className="font-serif text-headline-md text-on-surface">New Notebook</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            
+
             <form onSubmit={handleCreateNotebook} className="space-y-5">
               <div>
-                <label className="block text-sm font-bold text-on-surface mb-2">Title</label>
-                <input 
+                <label className="block font-sans text-label-md text-on-surface mb-2">Title</label>
+                <input
                   autoFocus
-                  type="text" 
+                  type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl px-4 py-3 text-on-surface outline-none transition-all font-medium text-sm"
+                  className="w-full bg-surface-container-low etched-border px-4 py-3 font-sans text-body-md text-on-surface outline-none focus:ring-2 focus:ring-primary transition-all"
                   placeholder="e.g., Quantum Physics 101"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-on-surface mb-2">Description <span className="text-on-surface-variant/50 font-normal">(Optional)</span></label>
-                <textarea 
+                <label className="block font-sans text-label-md text-on-surface mb-2">
+                  Description <span className="text-on-surface-variant font-normal">(Optional)</span>
+                </label>
+                <textarea
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl px-4 py-3 text-on-surface outline-none transition-all font-medium text-sm resize-none h-24"
+                  className="w-full bg-surface-container-low etched-border px-4 py-3 font-sans text-body-md text-on-surface outline-none focus:ring-2 focus:ring-primary transition-all resize-none h-24"
                   placeholder="What is this notebook about?"
                 />
               </div>
-              <div className="pt-4 flex gap-3">
-                <button 
-                  type="button" 
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 font-bold text-on-surface-variant hover:bg-surface-container rounded-xl transition-colors"
+                  className="flex-1 py-3 font-sans font-bold text-label-md text-on-surface-variant etched-border hover:bg-surface-container transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isCreating || !newTitle}
-                  className="flex-1 bg-primary text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-container transition-colors disabled:opacity-50 flex justify-center items-center"
+                  className="flex-1 bg-primary-container text-on-primary-container font-sans font-bold text-label-md py-3 etched-border shadow-hard btn-press transition-all disabled:opacity-50 flex justify-center items-center"
                 >
-                  {isCreating ? <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span> : 'Create'}
+                  {isCreating
+                    ? <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                    : 'Create Notebook'}
                 </button>
               </div>
             </form>

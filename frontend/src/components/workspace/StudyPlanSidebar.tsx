@@ -15,8 +15,7 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
   const [isGeneratingSyllabus, setIsGeneratingSyllabus] = useState(false);
 
   const formatTimeSpan = (timeStr?: string) => {
-    if (!timeStr || timeStr === "00:00:00") return "0s";
-    
+    if (!timeStr || timeStr === '00:00:00') return '0s';
     let days = 0;
     let timePart = timeStr;
     if (timeStr.includes('.') && timeStr.indexOf('.') < timeStr.indexOf(':')) {
@@ -25,13 +24,11 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
       timePart = splitByDot[1];
     }
     timePart = timePart.split('.')[0];
-    
     const parts = timePart.split(':');
     if (parts.length === 3) {
       const h = parseInt(parts[0]) || 0;
       const m = parseInt(parts[1]) || 0;
       const s = parseInt(parts[2]) || 0;
-      
       let res = '';
       if (days > 0) res += `${days}d `;
       if (h > 0) res += `${h}h `;
@@ -42,9 +39,15 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
     return timeStr;
   };
 
-  // Sort study plans by sequence order
+  const getDifficultyLabel = (level?: number) => {
+    if (level === 0) return 'Easy';
+    if (level === 1) return 'Medium';
+    if (level === 2) return 'Hard';
+    return 'Core';
+  };
+
   const sortedPlans = [...studyPlans].sort((a, b) => a.sequenceOrder - b.sequenceOrder);
-  
+
   const handleGenerate = async (e: React.MouseEvent, planId: number) => {
     e.stopPropagation();
     if (!notebookId) return;
@@ -81,144 +84,174 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
   };
 
   return (
-    <aside className="w-full bg-surface flex flex-col p-4 lg:p-8 overflow-y-auto hide-scrollbar pb-32 lg:pb-8">
-      <div className="mb-8 relative">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">auto_stories</span>
-            <span className="font-manrope uppercase tracking-widest text-[10px] font-bold text-on-surface-variant opacity-60">Personalized Roadmap</span>
+    <aside className="w-full bg-surface-container-low flex flex-col h-full overflow-y-auto">
+      {/* Header */}
+      <div className="px-8 pt-8 pb-6 border-b border-outline-variant shrink-0">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-outline font-sans">Generated Asset</span>
+            <h2 className="font-serif text-headline-lg text-on-surface mt-1">Study Roadmap</h2>
+            <p className="text-sm text-on-surface-variant font-sans mt-1">An algorithmic path through your sources.</p>
           </div>
           {sortedPlans.length > 0 && (
-            <button 
+            <button
               onClick={handleGenerateSyllabus}
               disabled={isGeneratingSyllabus}
-              className="bg-surface-container-highest hover:bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+              className="mt-1 etched-border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest font-sans text-on-surface hover:bg-surface-container transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
             >
               {isGeneratingSyllabus ? (
-                <><span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span> Regenerating...</>
+                <>
+                  <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                  Regen...
+                </>
               ) : (
-                <><span className="material-symbols-outlined text-[14px]">refresh</span> Regenerate</>
+                <>
+                  <span className="material-symbols-outlined text-sm">refresh</span>
+                  Regenerate
+                </>
               )}
             </button>
           )}
         </div>
-        <p className="text-xs text-on-surface-variant leading-relaxed">Based on your learning objectives and uploaded material.</p>
       </div>
 
       {/* Timeline */}
-      <div className="relative pl-4 space-y-12 mb-8">
-        {/* Vertical Line */}
-        {sortedPlans.length > 0 && (
-          <div className="absolute left-[23px] top-2 bottom-2 w-0.5 bg-outline-variant/30"></div>
-        )}
-
+      <div className="flex-1 px-8 py-6">
         {sortedPlans.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 text-primary shadow-inner">
+          <div className="flex flex-col items-center py-12 text-center">
+            <div className="w-16 h-16 etched-border flex items-center justify-center mb-6 text-primary">
               <span className="material-symbols-outlined text-4xl">account_tree</span>
             </div>
-            <h3 className="text-lg font-bold text-on-surface mb-2">No Study Plan Yet</h3>
-            <p className="text-sm text-on-surface-variant mb-8 max-w-[200px] leading-relaxed">Let the AI analyze your sources and generate a personalized roadmap.</p>
-            <button 
+            <h3 className="font-serif text-lg font-semibold text-on-surface mb-2">No Study Plan Yet</h3>
+            <p className="text-sm text-on-surface-variant font-sans mb-8 max-w-[200px] leading-relaxed">
+              Let the AI analyze your sources and generate a personalized roadmap.
+            </p>
+            <button
               onClick={handleGenerateSyllabus}
               disabled={isGeneratingSyllabus}
-              className="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center gap-2"
+              className="etched-border bg-primary-container text-on-primary-container px-6 py-3 font-sans font-bold text-xs uppercase tracking-widest shadow-hard btn-press flex items-center gap-2 disabled:opacity-50"
             >
               {isGeneratingSyllabus ? (
-                <><span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span> Generating...</>
+                <>
+                  <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                  Generating...
+                </>
               ) : (
-                <><span className="material-symbols-outlined text-[20px]">magic_button</span> Generate Syllabus</>
+                <>
+                  <span className="material-symbols-outlined text-lg">magic_button</span>
+                  Generate Syllabus
+                </>
               )}
             </button>
           </div>
         ) : (
-          sortedPlans.map((plan) => {
-            const isGenerated = plan.isGenerated === 1 || (plan.isGenerated as any) === true || (plan.isGenerated as any) === '1';
-            const isGeneratingThis = generatingId === plan.id;
+          <div className="relative pl-8">
+            {/* Dashed vertical timeline line */}
+            <div className="absolute left-[11px] top-4 bottom-4 w-px dashed-line opacity-40" />
 
-            return isGenerated ? (
-              <div key={plan.id} className="relative flex gap-6 group cursor-pointer" onClick={() => onOpenTopic(plan)}>
-                <div className={`z-10 w-5 h-5 rounded-full ring-4 flex items-center justify-center shrink-0 mt-1 ${plan.isFinished ? 'bg-green-500 ring-green-500/20' : 'bg-primary ring-primary/20'}`}>
-                  <div className="w-2 h-2 rounded-full bg-white"></div>
-                </div>
-                <div className={`bg-surface-container-lowest p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border flex-1 transition-colors ${plan.isFinished ? 'border-green-500/30 hover:border-green-500/60' : 'border-primary/20 hover:border-primary/50'}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-tighter ${plan.isFinished ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>Module {plan.sequenceOrder}</span>
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${plan.isFinished ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30' : 'text-primary bg-primary/10'}`}>
-                      {plan.isFinished ? 'Completed' : 'Ready'}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-sm text-on-surface mb-1">{plan.title}</h3>
-                  <p className="text-xs text-on-surface-variant mb-4 line-clamp-2">{plan.description}</p>
-                  <div className="w-full bg-surface-container-low h-1.5 rounded-full overflow-hidden">
-                    <div className={`h-full transition-all ${plan.isFinished ? 'bg-green-500 w-[100%]' : 'bg-primary w-[0%]'}`}></div>
-                  </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-[9px] font-bold text-on-surface-variant">
-                      {plan.isFinished 
-                        ? `Finished in ${formatTimeSpan(plan.timeItTookToFinish)}`
-                        : (plan.timeItTookToFinish && plan.timeItTookToFinish !== "00:00:00")
-                          ? `In Progress: ${formatTimeSpan(plan.timeItTookToFinish)} spent`
-                          : 'Not started'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div key={plan.id} className="relative flex gap-6">
-                <div className="z-10 w-5 h-5 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center justify-center shrink-0 mt-1">
-                </div>
-                <div className="p-5 rounded-2xl bg-surface-container-low/50 border border-outline-variant/10 transition-colors flex-1 flex flex-col">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter opacity-60">Module {plan.sequenceOrder}</span>
-                    <span className="text-[10px] font-medium text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded-full">Locked</span>
-                  </div>
-                  <h3 className="font-bold text-sm text-on-surface/80 mb-1">{plan.title}</h3>
-                  <p className="text-xs text-on-surface-variant/80 line-clamp-2 mb-4">{plan.description}</p>
-                  <div className="mt-auto pt-2">
-                    <button 
-                      onClick={(e) => handleGenerate(e, plan.id)}
-                      disabled={generatingId !== null}
-                      className="w-full bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-xs font-bold py-2 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:bg-surface-container-highest disabled:hover:text-on-surface"
+            {sortedPlans.map((plan) => {
+              const isGenerated = plan.isGenerated === 1 || (plan.isGenerated as any) === true || (plan.isGenerated as any) === '1';
+              const isGeneratingThis = generatingId === plan.id;
+
+              return (
+                <div key={plan.id} className="relative mb-10">
+                  {/* Timeline node */}
+                  {plan.isFinished ? (
+                    <div className="absolute -left-[30px] top-1 w-6 h-6 rounded-full bg-primary etched-border flex items-center justify-center z-10 shadow-hard-sm">
+                      <span className="material-symbols-outlined text-white text-xs">check</span>
+                    </div>
+                  ) : (
+                    <div className="absolute -left-[30px] top-1 w-6 h-6 rounded-full bg-white etched-border flex items-center justify-center z-10 shadow-hard-sm">
+                      <div className={`w-2 h-2 rounded-full ${isGenerated ? 'bg-primary' : 'bg-outline-variant'}`} />
+                    </div>
+                  )}
+
+                  {isGenerated ? (
+                    /* Generated — clickable card */
+                    <div
+                      className={`etched-border p-5 transition-all cursor-pointer ${
+                        plan.isFinished
+                          ? 'bg-surface-container-low shadow-hard-sm opacity-75 hover:opacity-100 hover:shadow-hard'
+                          : 'bg-white shadow-hard-sm hover:shadow-hard'
+                      }`}
+                      onClick={() => onOpenTopic(plan)}
                     >
-                      {isGeneratingThis ? (
-                        <>
-                          <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                          Generating Lesson...
-                        </>
-                      ) : (
-                        <>
-                          <span className="material-symbols-outlined text-[16px]">magic_button</span>
-                          Generate Lesson
-                        </>
-                      )}
-                    </button>
-                  </div>
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h5 className="font-sans font-bold uppercase text-xs text-primary">
+                          Phase {plan.sequenceOrder}
+                        </h5>
+                        {plan.isFinished && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest font-sans shrink-0">
+                            <span className="material-symbols-outlined text-xs">check</span>
+                            Done
+                          </span>
+                        )}
+                      </div>
+                      <h4 className={`font-serif text-base ${plan.isFinished ? 'text-on-surface-variant line-through decoration-outline' : 'text-on-surface'}`}>
+                        {plan.title}
+                      </h4>
+                      <p className="text-xs font-sans mt-2 text-outline line-clamp-2">{plan.description}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="px-2 py-0.5 bg-surface-container-high text-[10px] font-bold uppercase etched-border font-sans">
+                          {getDifficultyLabel(plan.difficultyLevel)}
+                        </span>
+                        {plan.isFinished ? (
+                          <span className="px-2 py-0.5 bg-surface-container-high text-[10px] font-bold uppercase etched-border font-sans">
+                            {formatTimeSpan(plan.timeItTookToFinish)}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-surface-container-high text-[10px] font-bold uppercase etched-border font-sans">
+                            {plan.timeItTookToFinish && plan.timeItTookToFinish !== '00:00:00' ? 'In Progress' : 'Ready'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Not generated — action card */
+                    <div className="bg-primary-container border border-dashed border-on-surface p-5 shadow-hard">
+                      <h5 className="font-sans font-bold uppercase text-xs text-on-primary-container opacity-70 mb-1">
+                        Phase {plan.sequenceOrder}
+                      </h5>
+                      <h4 className="font-serif text-base text-on-primary-container">{plan.title}</h4>
+                      <p className="text-xs font-sans mt-1 text-on-primary-container opacity-80 line-clamp-2">
+                        {plan.description}
+                      </p>
+                      <button
+                        onClick={(e) => handleGenerate(e, plan.id)}
+                        disabled={generatingId !== null}
+                        className="mt-4 w-full bg-white text-on-primary-container etched-border shadow-hard btn-press py-2.5 flex items-center justify-center gap-2 font-sans font-bold text-[11px] uppercase tracking-widest disabled:opacity-50"
+                      >
+                        {isGeneratingThis ? (
+                          <>
+                            <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <span className="material-symbols-outlined text-sm">magic_button</span>
+                            Generate Lesson
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* Goal Summary Card */}
-      {sortedPlans.length > 0 && (
-        <div className="mt-auto">
-          <div className="bg-gradient-to-br from-primary to-primary-container p-6 rounded-3xl text-on-primary shadow-lg shadow-primary/10">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Overall Progress</p>
-                <h4 className="text-xl font-bold">Ready to start</h4>
-              </div>
-              <span className="material-symbols-outlined text-3xl opacity-50">trophy</span>
-            </div>
-            <p className="text-xs opacity-90 leading-relaxed mb-4">You have {sortedPlans.length} modules to cover in this notebook. Let's get started!</p>
-            <button className="w-full bg-white/20 backdrop-blur-md text-white py-2.5 rounded-xl text-xs font-bold hover:bg-white/30 transition-all">
-              View Detailed Stats
-            </button>
+      {/* Footer */}
+      <div className="px-8 py-6 border-t border-dashed border-outline-variant shrink-0">
+        <div className="flex items-center gap-3 opacity-50">
+          <span className="material-symbols-outlined text-2xl">verified</span>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-tighter font-sans">Verified by StudyLM Engine</p>
+            <p className="text-[9px] text-outline font-sans">AI-powered learning roadmap</p>
           </div>
         </div>
-      )}
+      </div>
     </aside>
   );
 }
