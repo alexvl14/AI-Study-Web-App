@@ -9,5 +9,7 @@ namespace backend_dotnet.Services.Interfaces
 		public Task<FullStudyPlanResponse> GetStudyPlanAsync(string userId, int notebookId, int studyPlanId);
 		public Task<TimeSpan> UpdateTimeSpendAsync(string userId, int notebookId, int studyPlanId, int secondsSpent);
 		public Task<int> SubmitQuizAsync(string userId, int notebookId, int studyPlanId, QuizSubmitRequest request);
+		public Task<VerifyExerciseResponse> VerifyExerciseAsync(string userId,int notebookId,
+		 int studyPlanId,string exerciseId, IReadOnlyList<IFormFile> files);
 	}
 }

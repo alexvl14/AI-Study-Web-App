@@ -57,6 +57,16 @@ namespace backend_dotnet.Controllers
 			return Ok(new { score = score });
 
 		}
+		
+		//math plans
+		[HttpPost]
+		[Route("{studyPlanId}/math/{exerciseId}/verify")]
+		public async Task<IActionResult> VerifyExercise(int notebookId, int studyPlanId, 
+		string exerciseId, [FromForm] List<IFormFile> files)
+		{
+			var result = await _studyPlanService.VerifyExerciseAsync(UserId, notebookId, studyPlanId, exerciseId, files);
+			return Ok(result);
+		}
 
 	}
 }

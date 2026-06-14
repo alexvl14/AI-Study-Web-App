@@ -1,4 +1,5 @@
-﻿using Google.GenAI.Types;
+﻿using backend_dotnet.Dtos.StudyPlans;
+using Google.GenAI.Types;
 
 namespace backend_dotnet.Services.Interfaces
 {
@@ -7,5 +8,7 @@ namespace backend_dotnet.Services.Interfaces
 		public Task<string> GenerateTextAsync(string prompt);
 
 		public Task<string> GenerateStructuredDataAsync(string prompt, Schema expectedSchema);
+		public Task<string> GenerateStructuredDataWithImageAsync(string prompt, Schema expectedSchema,
+		IReadOnlyList<ImageData> images);
 	}
 }

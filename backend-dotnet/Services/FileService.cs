@@ -1,6 +1,7 @@
 using AutoMapper;
 using backend_dotnet.Data;
 using backend_dotnet.Dtos.Files;
+using backend_dotnet.Dtos.StudyPlans;
 using backend_dotnet.Extensions;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
@@ -105,6 +106,23 @@ namespace backend_dotnet.Services
 			return (stream, file.ContentType, file.FileName);
 		}
 
+		public async Task<IReadOnlyList<SavedImage>> SaveImages(int notebookId, IReadOnlyList<IFormFile> files)
+		{
+			var images = new List<SavedImage>();
+
+			foreach(var file in files)
+			{
+				await using var stream = new MemoryStream();
+				await file.CopyToAsync(stream);
+				var extension = Path.GetExtension(file.FileName);
+
+				var (relativePath, absolutePath) = await SaveFileToDisk(notebookId, 
+				stream.ToArray(), file.FileName, extension);
+
+				images.Add(new SavedImage(stream.ToArray(), file.ContentType ,relativePath));
+			}
+			return images;
+		}
 
 		//helper functions
 		private async Task<UploadedData> GetFileWithOwnershipCheck(string userId, int fileId)
