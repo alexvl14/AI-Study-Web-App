@@ -10,6 +10,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      #python service
+      - ExternalServices__Python__ServiceUrl=http://backend-python:8000
     volumes:
       - ./uploads:/app/uploads
 

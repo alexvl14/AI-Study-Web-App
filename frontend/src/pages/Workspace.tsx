@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import api from '../services/api';
 import type { NotebookDetails } from '../types/notebook';
+import { NotebookType } from '../types/notebook';
 import SourcesSidebar from '../components/workspace/SourcesSidebar';
 import ChatInterface from '../components/workspace/ChatInterface';
 import StudyPlanSidebar from '../components/workspace/StudyPlanSidebar';
@@ -140,6 +141,7 @@ export default function Workspace() {
         <StudyPlanDrawer
           notebookId={notebookId}
           planId={selectedPlanId}
+          notebookType={notebookDetails?.type ?? NotebookType.General}
           onClose={() => {
             setIsDrawerOpen(false);
             setSelectedPlanId(null);

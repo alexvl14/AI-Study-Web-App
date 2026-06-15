@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import ReactMarkdown from 'react-markdown';
+import MarkdownView from '../MarkdownView';
 import api from '../../services/api';
-import type { StudyPlanResponse } from '../../types/notebook';
+import type { StudyPlanResponse, NotebookType } from '../../types/notebook';
+import { NotebookType as NotebookTypeEnum } from '../../types/notebook';
+import MathModule from './MathModule';
 
 interface StudyPlanDrawerProps {
   notebookId: string;
   planId: number;
+  notebookType: NotebookType;
   onClose: () => void;
   onRefresh: () => void;
 }
 
-export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh }: StudyPlanDrawerProps) {
+export default function StudyPlanDrawer({ notebookId, planId, notebookType, onClose, onRefresh }: StudyPlanDrawerProps) {
   const [plan, setPlan] = useState<StudyPlanResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,6 +208,7 @@ export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh
   }
 
   const showQuizResults = plan.isQuizCompleted || quizScore !== null;
+  const isMath = notebookType === NotebookTypeEnum.Math;
 
   return createPortal(
     <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
@@ -261,8 +265,13 @@ export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh
             prose-blockquote:text-outline prose-blockquote:italic prose-blockquote:not-italic
             prose-code:bg-surface-container prose-code:px-1 prose-code:py-0.5
           ">
-            <ReactMarkdown>{plan.content || '*No content available for this module yet.*'}</ReactMarkdown>
+            <MarkdownView>{plan.content || '*No content available for this module yet.*'}</MarkdownView>
           </div>
+
+          {/* Math exercises */}
+          {isMath && plan.exercises && plan.exercises.length > 0 && (
+            <MathModule notebookId={notebookId} planId={planId} exercises={plan.exercises} />
+          )}
 
           {/* Footer actions */}
           <div className="mt-16 pt-8 border-t border-outline-variant flex justify-between items-center">
@@ -335,7 +344,7 @@ export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh
           </div>
 
           {/* Quiz */}
-          {plan.questions && plan.questions.length > 0 && (
+          {!isMath && plan.questions && plan.questions.length > 0 && (
             <div className="bg-white etched-border p-6 shadow-hard">
               <h3 className="font-serif text-headline-md mb-1">Active Recall</h3>
               <p className="font-sans text-xs text-outline mb-6">Test your retention of this module.</p>
@@ -444,15 +453,19 @@ export default function StudyPlanDrawer({ notebookId, planId, onClose, onRefresh
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-primary mt-0.5">quiz</span>
+                <span className="material-symbols-outlined text-primary mt-0.5">{isMath ? 'function' : 'quiz'}</span>
                 <div>
-                  <p className="font-sans font-bold text-sm text-on-surface">Quiz</p>
+                  <p className="font-sans font-bold text-sm text-on-surface">{isMath ? 'Exercises' : 'Quiz'}</p>
                   <p className="text-xs text-outline font-sans">
-                    {plan.isQuizCompleted
-                      ? `Completed${quizScore !== null ? ` — ${quizScore}/${plan.questions?.length}` : ''}`
-                      : plan.questions?.length
-                        ? `${plan.questions.length} question${plan.questions.length !== 1 ? 's' : ''}`
-                        : 'None'}
+                    {isMath
+                      ? plan.exercises?.length
+                        ? `${plan.exercises.length} exercise${plan.exercises.length !== 1 ? 's' : ''}`
+                        : 'None'
+                      : plan.isQuizCompleted
+                        ? `Completed${quizScore !== null ? ` — ${quizScore}/${plan.questions?.length}` : ''}`
+                        : plan.questions?.length
+                          ? `${plan.questions.length} question${plan.questions.length !== 1 ? 's' : ''}`
+                          : 'None'}
                   </p>
                 </div>
               </li>

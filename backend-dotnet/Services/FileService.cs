@@ -55,7 +55,7 @@ namespace backend_dotnet.Services
 			var notebook = await _context.ValidateNotebookOwnershipAsync(userId, notebookId);
 
 			(string extractedText, string extension, byte[] bytes) = await _documentParser.ParseFile(request);
-
+			extractedText = extractedText.Replace("\0", "");
 			(string relativePath,string absolutePath) = await SaveFileToDisk(notebookId, bytes, request.FileName, extension);
 
 			using var transaction = await _context.Database.BeginTransactionAsync();

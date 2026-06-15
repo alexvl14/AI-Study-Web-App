@@ -1,13 +1,22 @@
+export const NotebookType = {
+  General: 0,
+  Math: 1
+} as const;
+
+export type NotebookType = (typeof NotebookType)[keyof typeof NotebookType];
+
 export interface Notebook {
   id: number;
   title: string;
   description: string;
+  type: NotebookType;
   lastOpenedDateTime: string;
 }
 
 export interface CreateNotebookRequest {
   title: string;
   description: string;
+  type: NotebookType;
 }
 
 export const Sender = {
@@ -44,6 +53,27 @@ export interface QuizQuestionResponse {
   options: QuizOptionResponse[];
 }
 
+export interface ExerciseSubmissionResponse {
+  isCorrect: boolean;
+  feedback: string;
+}
+
+export interface MathExerciseResponse {
+  id: string;
+  prompt: string;
+  hint: string;
+  submissions: ExerciseSubmissionResponse[];
+}
+
+// Result of POST .../math/:exerciseId/verify
+export interface VerifyExerciseResponse {
+  id: number;
+  exerciseId: string;
+  isCorrect: boolean;
+  feedback: string;
+  createdAt: string;
+}
+
 export interface StudyPlanResponse {
   id: number;
   sequenceOrder: number;
@@ -56,6 +86,7 @@ export interface StudyPlanResponse {
   isFinished?: boolean;
   timeItTookToFinish?: string;
   questions?: QuizQuestionResponse[];
+  exercises?: MathExerciseResponse[]; // Math notebooks only; General leaves this empty
 }
 
 export interface ChatHistoryResponse {
@@ -69,6 +100,7 @@ export interface NotebookDetails {
   id: number;
   title: string;
   description: string;
+  type: NotebookType;
   files: FileResponse[];
   studyPlans: StudyPlanResponse[];
   recentChat: ChatHistoryResponse[];

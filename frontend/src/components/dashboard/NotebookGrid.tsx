@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import type { Notebook } from '../../types/notebook';
+import { NotebookType } from '../../types/notebook';
 
 interface NotebookGridProps {
   notebooks?: Notebook[];
@@ -16,6 +17,7 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
+  const [newType, setNewType] = useState<NotebookType>(NotebookType.General);
   const [isCreating, setIsCreating] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
@@ -62,10 +64,11 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
     if (!newTitle) return;
     try {
       setIsCreating(true);
-      await api.post('/notebooks', { title: newTitle, description: newDescription });
+      await api.post('/notebooks', { title: newTitle, description: newDescription, type: newType });
       setIsModalOpen(false);
       setNewTitle('');
       setNewDescription('');
+      setNewType(NotebookType.General);
       onRefresh ? onRefresh() : await fetchNotebooks();
     } catch (error) {
       console.error('Failed to create notebook', error);
@@ -102,6 +105,11 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
       setIsUpdating(false);
     }
   };
+
+  const getTypeMeta = (type: NotebookType) =>
+    type === NotebookType.Math
+      ? { icon: 'functions', label: 'Math' }
+      : { icon: 'menu_book', label: 'General' };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -148,7 +156,10 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
             <div className="p-6 flex flex-col h-full">
               {/* Card header */}
               <div className="flex justify-between items-start mb-6">
-                <span className="material-symbols-outlined text-outline-variant">menu_book</span>
+                <div className="flex items-center gap-2 bg-surface-container-low etched-border shadow-hard-sm px-2.5 py-1">
+                  <span className="material-symbols-outlined text-base text-primary">{getTypeMeta(nb.type).icon}</span>
+                  <span className="font-sans font-bold text-[10px] uppercase tracking-widest text-on-surface-variant">{getTypeMeta(nb.type).label}</span>
+                </div>
                 <div className="relative">
                   <button
                     onClick={(e) => {
@@ -285,6 +296,33 @@ export default function NotebookGrid({ notebooks: initialNotebooks, isLoading: i
             </div>
 
             <form onSubmit={handleCreateNotebook} className="space-y-5">
+              <div>
+                <label className="block font-sans text-label-md text-on-surface mb-2">Notebook Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { value: NotebookType.General, icon: 'menu_book', label: 'General', desc: 'Lessons + quizzes' },
+                    { value: NotebookType.Math, icon: 'functions', label: 'Math', desc: 'Theory + photo-graded exercises' },
+                  ] as const).map((opt) => {
+                    const selected = newType === opt.value;
+                    return (
+                      <button
+                        type="button"
+                        key={opt.value}
+                        onClick={() => setNewType(opt.value)}
+                        className={`text-left p-4 etched-border transition-all ${
+                          selected
+                            ? 'bg-primary-container shadow-hard'
+                            : 'bg-surface-container-low hover:bg-surface-container shadow-hard-sm'
+                        }`}
+                      >
+                        <span className={`material-symbols-outlined ${selected ? 'text-on-primary-container' : 'text-primary'}`}>{opt.icon}</span>
+                        <p className={`font-sans font-bold text-sm mt-2 ${selected ? 'text-on-primary-container' : 'text-on-surface'}`}>{opt.label}</p>
+                        <p className={`font-sans text-[11px] mt-0.5 ${selected ? 'text-on-primary-container opacity-80' : 'text-on-surface-variant'}`}>{opt.desc}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div>
                 <label className="block font-sans text-label-md text-on-surface mb-2">Title</label>
                 <input
