@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -14,10 +15,16 @@ function normalizeMath(md: string): string {
     .replace(/\\\(([\s\S]+?)\\\)/g, (_, expr) => `$${expr}$`);
 }
 
-export default function MarkdownView({ children }: MarkdownViewProps) {
+// Memoized: markdown + KaTeX parsing is expensive. Without this, a parent
+// re-render (e.g. the drawer's 1s visual timer) would re-parse and re-render
+// all math every tick, blocking the main thread.
+function MarkdownView({ children }: MarkdownViewProps) {
+  const normalized = useMemo(() => normalizeMath(children), [children]);
   return (
     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-      {normalizeMath(children)}
+      {normalized}
     </ReactMarkdown>
   );
 }
+
+export default memo(MarkdownView);

@@ -14,6 +14,60 @@ interface StudyPlanDrawerProps {
   onRefresh: () => void;
 }
 
+const parseTimeSpanToSeconds = (timeStr?: string) => {
+  if (!timeStr || timeStr === '00:00:00') return 0;
+  let days = 0;
+  let timePart = timeStr;
+  if (timeStr.includes('.') && timeStr.indexOf('.') < timeStr.indexOf(':')) {
+    const splitByDot = timeStr.split('.');
+    days = parseInt(splitByDot[0]) || 0;
+    timePart = splitByDot[1];
+  }
+  timePart = timePart.split('.')[0];
+  const parts = timePart.split(':');
+  if (parts.length === 3) {
+    const h = parseInt(parts[0]) || 0;
+    const m = parseInt(parts[1]) || 0;
+    const s = parseInt(parts[2]) || 0;
+    return (days * 86400) + (h * 3600) + (m * 60) + s;
+  }
+  return 0;
+};
+
+const formatSeconds = (totalSeconds: number) => {
+  if (totalSeconds === 0) return '0s';
+  const days = Math.floor(totalSeconds / 86400);
+  const h = Math.floor((totalSeconds % 86400) / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  let res = '';
+  if (days > 0) res += `${days}d `;
+  if (h > 0) res += `${h}h `;
+  if (m > 0 || days > 0 || h > 0) res += `${m}m `;
+  res += `${s}s`;
+  return res.trim();
+};
+
+const getDifficultyLabel = (level?: number) => {
+  if (level === 0) return 'Easy';
+  if (level === 1) return 'Medium';
+  if (level === 2) return 'Hard';
+  return 'Core';
+};
+
+// Self-contained ticking display. The 1s interval lives here so it re-renders
+// only this tiny node each second instead of the whole drawer (which would
+// re-reconcile the math/quiz subtree and block the main thread).
+function LiveTimer({ initialSeconds, running }: { initialSeconds: number; running: boolean }) {
+  const [seconds, setSeconds] = useState(initialSeconds);
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setSeconds(prev => prev + 1), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+  return <>{formatSeconds(seconds)}</>;
+}
+
 export default function StudyPlanDrawer({ notebookId, planId, notebookType, onClose, onRefresh }: StudyPlanDrawerProps) {
   const [plan, setPlan] = useState<StudyPlanResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,57 +76,6 @@ export default function StudyPlanDrawer({ notebookId, planId, notebookType, onCl
   const [submitting, setSubmitting] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [quizScore, setQuizScore] = useState<number | null>(null);
-  const [localSeconds, setLocalSeconds] = useState<number>(0);
-
-  const parseTimeSpanToSeconds = (timeStr?: string) => {
-    if (!timeStr || timeStr === '00:00:00') return 0;
-    let days = 0;
-    let timePart = timeStr;
-    if (timeStr.includes('.') && timeStr.indexOf('.') < timeStr.indexOf(':')) {
-      const splitByDot = timeStr.split('.');
-      days = parseInt(splitByDot[0]) || 0;
-      timePart = splitByDot[1];
-    }
-    timePart = timePart.split('.')[0];
-    const parts = timePart.split(':');
-    if (parts.length === 3) {
-      const h = parseInt(parts[0]) || 0;
-      const m = parseInt(parts[1]) || 0;
-      const s = parseInt(parts[2]) || 0;
-      return (days * 86400) + (h * 3600) + (m * 60) + s;
-    }
-    return 0;
-  };
-
-  const formatSeconds = (totalSeconds: number) => {
-    if (totalSeconds === 0) return '0s';
-    const days = Math.floor(totalSeconds / 86400);
-    const h = Math.floor((totalSeconds % 86400) / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    let res = '';
-    if (days > 0) res += `${days}d `;
-    if (h > 0) res += `${h}h `;
-    if (m > 0 || days > 0 || h > 0) res += `${m}m `;
-    res += `${s}s`;
-    return res.trim();
-  };
-
-  const getDifficultyLabel = (level?: number) => {
-    if (level === 0) return 'Easy';
-    if (level === 1) return 'Medium';
-    if (level === 2) return 'Hard';
-    return 'Core';
-  };
-
-  // Visual timer
-  useEffect(() => {
-    if (!plan || plan.isFinished) return;
-    const intervalId = setInterval(() => {
-      setLocalSeconds(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [plan?.isFinished, plan !== null]);
 
   // Time-tracking: save elapsed time periodically and on unmount
   useEffect(() => {
@@ -116,9 +119,6 @@ export default function StudyPlanDrawer({ notebookId, planId, notebookType, onCl
         const response = await api.get(`/notebooks/${notebookId}/study-plans/${planId}`);
         const data = response.data;
         setPlan(data);
-        if (data.timeItTookToFinish) {
-          setLocalSeconds(parseTimeSpanToSeconds(data.timeItTookToFinish));
-        }
         if (data.isQuizCompleted && data.questions) {
           const answers: Record<number, number> = {};
           data.questions.forEach((q: any) => {
@@ -213,7 +213,7 @@ export default function StudyPlanDrawer({ notebookId, planId, notebookType, onCl
   return createPortal(
     <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
       {/* Sticky breadcrumb header */}
-      <header className="sticky top-0 z-10 bg-background border-b border-outline-variant px-8 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-10 bg-background border-b border-outline-variant px-4 sm:px-8 py-4 flex items-center justify-between">
         <nav className="flex items-center gap-2 font-sans text-[11px] font-bold uppercase tracking-widest text-outline">
           <button onClick={onClose} className="hover:text-primary transition-colors">Workspace</button>
           <span className="material-symbols-outlined text-[11px]">chevron_right</span>
@@ -223,12 +223,12 @@ export default function StudyPlanDrawer({ notebookId, planId, notebookType, onCl
           {plan.isFinished ? (
             <span className="text-[10px] font-bold font-sans text-primary flex items-center gap-1 uppercase tracking-widest">
               <span className="material-symbols-outlined text-sm">check_circle</span>
-              Completed — {formatSeconds(localSeconds)}
+              Completed — <LiveTimer initialSeconds={parseTimeSpanToSeconds(plan.timeItTookToFinish)} running={false} />
             </span>
           ) : (
             <span className="text-[10px] font-bold font-sans text-outline flex items-center gap-1 uppercase tracking-widest">
               <span className="material-symbols-outlined text-sm">schedule</span>
-              {formatSeconds(localSeconds)}
+              <LiveTimer initialSeconds={parseTimeSpanToSeconds(plan.timeItTookToFinish)} running={!plan.isFinished} />
             </span>
           )}
           <button
@@ -241,10 +241,10 @@ export default function StudyPlanDrawer({ notebookId, planId, notebookType, onCl
       </header>
 
       {/* Content grid */}
-      <div className="px-8 py-10 grid grid-cols-12 gap-6 max-w-[1400px] mx-auto">
+      <div className="px-4 py-6 sm:px-8 sm:py-10 grid grid-cols-12 gap-6 max-w-[1400px] mx-auto">
 
         {/* COLUMN: Reading area (col-span-8) */}
-        <section className="col-span-12 lg:col-span-8 bg-surface-container-lowest etched-border shadow-hard p-10 lg:p-12 relative">
+        <section className="col-span-12 lg:col-span-8 bg-surface-container-lowest etched-border shadow-hard p-6 sm:p-10 lg:p-12 relative">
           {/* Module label */}
           <div className="mb-4">
             <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-outline font-sans">
@@ -442,7 +442,9 @@ export default function StudyPlanDrawer({ notebookId, planId, notebookType, onCl
                 <span className="material-symbols-outlined text-primary mt-0.5">schedule</span>
                 <div>
                   <p className="font-sans font-bold text-sm text-on-surface">Time Spent</p>
-                  <p className="text-xs text-outline font-sans">{formatSeconds(localSeconds)}</p>
+                  <p className="text-xs text-outline font-sans">
+                    <LiveTimer initialSeconds={parseTimeSpanToSeconds(plan.timeItTookToFinish)} running={!plan.isFinished} />
+                  </p>
                 </div>
               </li>
               <li className="flex items-start gap-3">

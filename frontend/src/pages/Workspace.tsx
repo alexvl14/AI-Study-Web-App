@@ -46,7 +46,7 @@ export default function Workspace() {
   }
 
   return (
-    <main className="h-screen overflow-hidden pt-[72px] bg-background">
+    <main className="w-full h-screen overflow-hidden pt-[72px] pb-[72px] lg:pb-0 bg-background">
       <div className="h-full grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         {/* COLUMN 1: Sources (3/12) */}
         <div className={`${activeTab === 'sources' ? 'flex' : 'hidden'} lg:flex flex-col lg:col-span-3 overflow-hidden`}>
