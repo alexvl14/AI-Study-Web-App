@@ -3,5 +3,8 @@ dist
 .git
 .gitignore
 Dockerfile
+.dockerignore
 docker-compose.yml
+docker-compose.override.yml
 .env
+*.log
