@@ -20,6 +20,10 @@ namespace backend_dotnet.Mappings
 
 			CreateMap<StudyPlan, GetStudyPlanResponse>();
 
+			//math
+			CreateMap<ExerciseSubmission, VerifyExerciseResponse>();
+			CreateMap<ExerciseSubmission, ExerciseSubmissionResponse>();
+
 		}
 	}
 }

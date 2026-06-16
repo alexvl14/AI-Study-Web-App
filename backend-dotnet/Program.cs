@@ -5,6 +5,8 @@ using backend_dotnet.Mappings;
 using backend_dotnet.Services.Interfaces;
 using backend_dotnet.Services;
 using backend_dotnet.Middlewares;
+using backend_dotnet.Services.StudyPlansMath;
+using backend_dotnet.Services.StudyPlansGeneral;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +37,7 @@ var pythonAddress = builder.Configuration["ExternalServices:Python:ServiceUrl"];
 var pythonApiKey = builder.Configuration["ExternalServices:Python:ApiKey"];
 builder.Services.AddHttpClient("PythonBackend", client =>
 {
-    client.BaseAddress = new Uri(pythonAddress);
+    client.BaseAddress = new Uri(pythonAddress!);
     client.Timeout = TimeSpan.FromSeconds(30);
     client.DefaultRequestHeaders.Add("DotNet-API-KEY", pythonApiKey);
 });
@@ -49,10 +51,17 @@ builder.Services.AddScoped<ILLMConnectService, LLMConnectService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
 //StudyPlanServices
+//registry
 builder.Services.AddScoped<IStudyPlanGeneratorRegistry, StudyPlanGeneratorRegistry>();
-builder.Services.AddScoped<IStudyPlanGenerator, LessonQuizGenerator>(); // general plans
-builder.Services.AddScoped<IQuizAssessor, QuizAssessor>();//general plans
-
+builder.Services.AddScoped<IStudyPlanReaderRegistry, StudyPlanReaderRegistry>();
+//general plans
+builder.Services.AddScoped<IStudyPlanGenerator, LessonQuizGenerator>(); 
+builder.Services.AddScoped<IQuizAssessor, QuizAssessor>();
+builder.Services.AddScoped<IStudyPlanReader, GeneralStudyPlanReader>();
+//math plans
+builder.Services.AddScoped<IStudyPlanGenerator, MathModuleGenerator>(); 
+builder.Services.AddScoped<IMathAssessor, MathAssessor>(); 
+builder.Services.AddScoped<IStudyPlanReader, MathStudyPlanReader>();
 //Error Handling 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();

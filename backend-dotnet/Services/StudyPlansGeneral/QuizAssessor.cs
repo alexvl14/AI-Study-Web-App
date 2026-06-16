@@ -2,7 +2,7 @@ using backend_dotnet.Dtos.StudyPlans;
 using backend_dotnet.Models;
 using backend_dotnet.Services.Interfaces;
 
-namespace backend_dotnet.Services
+namespace backend_dotnet.Services.StudyPlansGeneral
 {
 
     public class QuizAssessor : IQuizAssessor

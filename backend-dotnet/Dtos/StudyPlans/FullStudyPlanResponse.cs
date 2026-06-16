@@ -13,6 +13,7 @@ namespace backend_dotnet.Dtos.StudyPlans
 		public bool IsFinished { get; set; }
 		public TimeSpan TimeItTookToFinish { get; set; } = TimeSpan.Zero;
 		public ICollection<QuizQuestionResponse> Questions { get; set; } = new List<QuizQuestionResponse>();
+		public ICollection<MathExerciseResponse> Exercises {get; set;} = new List<MathExerciseResponse>();
 	}
 
 	public class QuizQuestionResponse

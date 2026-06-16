@@ -1,4 +1,5 @@
 using backend_dotnet.Dtos.Files;
+using backend_dotnet.Dtos.StudyPlans;
 
 namespace backend_dotnet.Services.Interfaces
 {
@@ -11,6 +12,6 @@ namespace backend_dotnet.Services.Interfaces
 		public Task<GetFilesForNotebookResponse> UploadFile(string userId, int notebookId, IFormFile request);
 
 		public Task<(FileStream Stream, string ContentType, string FileName)> DownloadFile(string userId, int fileId);
-
+		public Task<IReadOnlyList<SavedImage>> SaveImages(int notebookId, IReadOnlyList<IFormFile> files);
 	}
 }

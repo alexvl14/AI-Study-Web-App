@@ -8,7 +8,7 @@ using backend_dotnet.Services.Interfaces;
 using Google.GenAI.Types;
 using Microsoft.EntityFrameworkCore;
 
-namespace backend_dotnet.Services
+namespace backend_dotnet.Services.StudyPlansGeneral
 {
 
     public class LessonQuizGenerator : IStudyPlanGenerator

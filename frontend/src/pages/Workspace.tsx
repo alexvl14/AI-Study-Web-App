@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import api from '../services/api';
 import type { NotebookDetails } from '../types/notebook';
+import { NotebookType } from '../types/notebook';
 import SourcesSidebar from '../components/workspace/SourcesSidebar';
 import ChatInterface from '../components/workspace/ChatInterface';
 import StudyPlanSidebar from '../components/workspace/StudyPlanSidebar';
@@ -45,7 +46,7 @@ export default function Workspace() {
   }
 
   return (
-    <main className="h-screen overflow-hidden pt-[72px] bg-background">
+    <main className="w-full h-screen overflow-hidden pt-[72px] pb-[72px] lg:pb-0 bg-background">
       <div className="h-full grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         {/* COLUMN 1: Sources (3/12) */}
         <div className={`${activeTab === 'sources' ? 'flex' : 'hidden'} lg:flex flex-col lg:col-span-3 overflow-hidden`}>
@@ -140,6 +141,7 @@ export default function Workspace() {
         <StudyPlanDrawer
           notebookId={notebookId}
           planId={selectedPlanId}
+          notebookType={notebookDetails?.type ?? NotebookType.General}
           onClose={() => {
             setIsDrawerOpen(false);
             setSelectedPlanId(null);

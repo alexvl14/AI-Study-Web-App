@@ -86,7 +86,7 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
   return (
     <aside className="w-full bg-surface-container-low flex flex-col h-full overflow-y-auto">
       {/* Header */}
-      <div className="px-8 pt-8 pb-6 border-b border-outline-variant shrink-0">
+      <div className="px-5 sm:px-8 pt-8 pb-6 border-b border-outline-variant shrink-0">
         <div className="flex items-start justify-between gap-4">
           <div>
             <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-outline font-sans">Generated Asset</span>
@@ -116,7 +116,7 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
       </div>
 
       {/* Timeline */}
-      <div className="flex-1 px-8 py-6">
+      <div className="flex-1 px-5 sm:px-8 py-6">
         {sortedPlans.length === 0 ? (
           <div className="flex flex-col items-center py-12 text-center">
             <div className="w-16 h-16 etched-border flex items-center justify-center mb-6 text-primary">
@@ -243,7 +243,7 @@ export default function StudyPlanSidebar({ notebookId, studyPlans, onOpenTopic, 
       </div>
 
       {/* Footer */}
-      <div className="px-8 py-6 border-t border-dashed border-outline-variant shrink-0">
+      <div className="px-5 sm:px-8 py-6 border-t border-dashed border-outline-variant shrink-0">
         <div className="flex items-center gap-3 opacity-50">
           <span className="material-symbols-outlined text-2xl">verified</span>
           <div>
